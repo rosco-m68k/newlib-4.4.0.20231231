@@ -2760,6 +2760,11 @@ host_makefile_frag=${srcdir}/config/default.mh
 target_makefile_frag=${srcdir}/config/default.mt
 
 case "${target}" in
+  m68k-*-rosco)
+	ac_config_files="$ac_config_files rosco/Makefile"
+
+	subdirs="$subdirs rosco"
+	;;
   aarch64*-*-*)
 	config_aarch64=true
 	config_testsuite=true
@@ -6050,6 +6055,7 @@ for ac_config_target in $ac_config_targets
 do
   case $ac_config_target in
     "config.h") CONFIG_HEADERS="$CONFIG_HEADERS config.h" ;;
+    "rosco/Makefile") CONFIG_FILES="$CONFIG_FILES rosco/Makefile" ;;
     "epiphany/Makefile") CONFIG_FILES="$CONFIG_FILES epiphany/Makefile" ;;
     "i386/Makefile") CONFIG_FILES="$CONFIG_FILES i386/Makefile" ;;
     "m32r/Makefile") CONFIG_FILES="$CONFIG_FILES m32r/Makefile" ;;

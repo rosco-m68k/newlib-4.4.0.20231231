@@ -47,6 +47,10 @@ host_makefile_frag=${srcdir}/config/default.mh
 target_makefile_frag=${srcdir}/config/default.mt
 
 case "${target}" in
+  m68k-*-rosco)
+	AC_CONFIG_FILES([rosco/Makefile])
+	subdirs="$subdirs rosco"
+	;;
   aarch64*-*-*)
 	config_aarch64=true
 	config_testsuite=true

@@ -21,7 +21,7 @@ extern int  outbyte (char x);
  *          stdout and stderr are the same. Since we have no filesystem,
  *          open will only return an error.
  */
-int
+long int
 write (int fd,
        const void *buf_,
        size_t nbytes)

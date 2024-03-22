@@ -439,6 +439,9 @@ case "${host}" in
 	posix_dir=posix
 	unix_dir=unix
 	;;
+  *-*-rosco*)
+    syscall_dir=rosco
+    ;;
   *-*-tirtos*)
 	sys_dir=tirtos
 	have_crt0="no"
@@ -598,6 +601,10 @@ case "${host}" in
 	default_newlib_io_pos_args="yes"
 	CC="${CC} -I${cygwin_srcdir}/include"
 	newlib_cflags="${newlib_cflags} -DHAVE_OPENDIR -DHAVE_RENAME -DGETREENT_PROVIDED -DSIGNAL_PROVIDED -DHAVE_BLKSIZE -DHAVE_FCNTL -DMALLOC_PROVIDED -DHAVE_CHDIR -DHAVE_FCHDIR"
+	syscall_dir=syscalls
+	;;
+  *-*-rosco*)
+	newlib_cflags="${newlib_cflags} -DNO_EXEC"
 	syscall_dir=syscalls
 	;;
 # RTEMS supplies its own versions of some routines:
