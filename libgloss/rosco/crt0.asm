@@ -62,7 +62,9 @@ POSTRELOC:                        ; running from copied run addr location
 
 _enter::                          ; entrypoint at copied run addr location
     move.l  SDB_MEMSIZE,A7        ; reset stack to top of memory
-
+ 
+    jsr     _kinit                ; prepare C environment
+    
     ; Save existing program exit EFP
     ; Cannot use stack as we may jump directly with exit() or abort(),
     ; from arbitrarily nested code...
@@ -70,8 +72,7 @@ _enter::                          ; entrypoint at copied run addr location
 
     ; And set up new one at POSTMAIN
     move.l  #.POSTMAIN,EFP_PROG_EXIT
- 
-    jsr     _kinit                ; prepare C environment
+
     jsr     _init                 ; Call global constructors
 
     move.l  #_fini,-(A7)          ; Set up _fini with atexit
@@ -92,28 +93,19 @@ _enter::                          ; entrypoint at copied run addr location
                                   ; Noreturn, calls through to our _exit...
 
 
-;; TODO this doesn't even remotely work, just rewrite it
-;; (I ported it in from GAS, late at night, and after it was optimized 😅) 
-;;
 _kinit:
-    move.l  D2,-(A7)
-    move.l  #0,D1
-    cmpi.l  #0,D1
-    bcc.s   .done
-    move.l  #0,D0
-    subi.l  #0,D0
-    moveq.l #-4,D2
-    and.l   D2,D0
-    movea.l D0,A0
-    pea     4(A0)
-    clr.l   -(A7)
-    move.l  D1,-(A7)
-    jsr     _kinit
-    lea     12(A7),A7
-.done:
-    move.l  (A7)+,D2
-    rts
+    move.l  #_bss_end,D0
+    sub.l   #_bss_start,D0
+    lsr.l   #2,D0
+    move.l  #_bss_start,A0
+    bra.s   .loopstart
 
+.loop:
+    clr.l   (A0)+
+
+.loopstart:
+    dbra    d0,.loop
+    rts
 
     section .bss,bss
     align  4
