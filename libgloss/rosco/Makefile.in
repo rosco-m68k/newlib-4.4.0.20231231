@@ -49,7 +49,9 @@ AS = @AS@
 AR = @AR@
 LD = @LD@
 RANLIB = @RANLIB@
+VASM=vasmm68k_mot
 AR_FLAGS = rc
+VASM_FLAGS=-Felf -m68000 -quiet
 
 OBJDUMP = `if [ -f ${objroot}/../binutils/objdump ] ; \
 	then echo ${objroot}/../binutils/objdump ; \
@@ -62,7 +64,7 @@ BSP=	librosco.a
 
 SCRIPTS = hugerom_rosco_m68k_program.ld
 
-OBJS =  syscalls.o
+OBJS =  syscalls.o machine.o
 
 CRT0 = crt0.o
 
@@ -71,7 +73,8 @@ CRT0 = crt0.o
 
 all: $(CRT0) $(BSP)
 
-crt0.o: $(srcdir)/crt0.c
+crt0.o: $(srcdir)/crt0.asm
+	$(VASM) $(VASM_FLAGS) -o $@ $<
 
 ${BSP}: $(OBJS)
 	${AR} ${ARFLAGS} $@ $(OBJS)
@@ -79,6 +82,9 @@ ${BSP}: $(OBJS)
 
 syscalls.o: $(srcdir)/syscalls.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $<
+
+machine.o: $(srcdir)/machine.asm
+	$(VASM) $(VASM_FLAGS) -o $@ $<
 
 install: $($(CPU)_INSTALL)
 	${mkinstalldirs} ${DESTDIR}${tooldir}/lib${MULTISUBDIR}

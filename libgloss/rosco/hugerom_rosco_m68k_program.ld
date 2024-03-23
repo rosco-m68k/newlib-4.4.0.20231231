@@ -14,7 +14,7 @@
  * ------------------------------------------------------------
  */
 
-OUTPUT_FORMAT("binary")
+OUTPUT_FORMAT("elf32-m68k")
 ENTRY(_start)
 
 MEMORY
@@ -30,7 +30,7 @@ MEMORY
 PROVIDE(_STACK_SIZE     = 0x00004000);  /* 16KB default stack size      */
 
 /* firmware absolute addresses (generally not useful to override)  */
-PROVIDE(_INITIAL_STACK  = 0x00000000);  /* firmware stack top (mem top) */
+PROVIDE(_relocIAL_STACK  = 0x00000000);  /* firmware stack top (mem top) */
 PROVIDE(_WARM_BOOT      = 0x00000004);  /* firmware warm boot address   */
 
 PROVIDE(_MFP_VECTORS    = 0x00000100);  /* MFP interrupt vector base    */
@@ -62,12 +62,12 @@ PROVIDE(_EFP_CLRSCR     = 0x00000438);  /* Clear screen (optional)      */
 PROVIDE(_EFP_MOVEXY     = 0x0000043C);  /* Set cursor position (opt.)   */
 PROVIDE(_EFP_SETCURSOR  = 0x00000440);  /* Enable/disable cursor (opt.) */
 PROVIDE(_EFP_CHECKCHAR  = 0x00000444);  /* Check char ready from UART   */
-PROVIDE(_EFP_PROGLOADER = 0x00000448);  /* Initial program loader       */
-PROVIDE(_EFP_SD_INIT    = 0x0000044C);  /* SD Card init                 */
+PROVIDE(_EFP_PROGLOADER = 0x00000448);  /* relocial program loader       */
+PROVIDE(_EFP_SD_reloc    = 0x0000044C);  /* SD Card reloc                 */
 PROVIDE(_EFP_SD_READ    = 0x00000450);  /* SD Card read                 */
 PROVIDE(_EFP_SD_WRITE   = 0x00000454);  /* SD Card write                */
 PROVIDE(_EFP_SD_REG     = 0x00000458);  /* SD Card register read        */
-PROVIDE(_EFP_SPI_INIT   = 0x0000045C);  /* SPI init                     */
+PROVIDE(_EFP_SPI_reloc   = 0x0000045C);  /* SPI reloc                     */
 PROVIDE(_EFP_SPI_CS_A   = 0x00000460);  /* SPI CS assert                */
 PROVIDE(_EFP_SPI_CS_D   = 0x00000464);  /* SPI CS deassert              */
 PROVIDE(_EFP_SPI_XFER_B = 0x00000468);  /* SPI transfer byte            */
@@ -76,7 +76,7 @@ PROVIDE(_EFP_SPI_RECV_B = 0x00000470);  /* SPI recv byte                */
 PROVIDE(_EFP_SPI_RECV_M = 0x00000474);  /* SPI recv multiple            */
 PROVIDE(_EFP_SPI_SEND_B = 0x00000478);  /* SPI send byte                */
 PROVIDE(_EFP_SPI_SEND_M = 0x0000047C);  /* SPI send multiple            */
-PROVIDE(_EFP_ATA_INIT   = 0x00000480);  /* ATA init                     */
+PROVIDE(_EFP_ATA_reloc   = 0x00000480);  /* ATA reloc                     */
 PROVIDE(_EFP_ATA_READ   = 0x00000484);  /* ATA read                     */
 PROVIDE(_EFP_ATA_WRITE  = 0x00000488);  /* ATA write                    */
 PROVIDE(_EFP_ATA_IDENT  = 0x0000048C);  /* ATA identify                 */
@@ -87,31 +87,33 @@ PROVIDE(_EFP_CHECKINPUT = 0x00000498);  /* Check char ready from input  */
 PROVIDE(_FIRMWARE       = 0x00E00000);  /* firmware address             */
 PROVIDE(_FIRMWARE_REV   = 0x00E00400);  /* firmware revision code       */
 
-/* NOTE: rev1.1 used 0x00028000 (but init now position independent)     */
+/* NOTE: rev1.1 used 0x00028000 (but reloc now position independent)     */
 PROVIDE(_LOAD_ADDRESS   = 0x00040000);  /* firmware KERNEL_LOAD_ADDRESS */
 PROVIDE(_RUN_ADDRESS    = 0x00002000);  /* start of user memory         */
 
 SECTIONS
 {
-  .text.init _RUN_ADDRESS : AT(_LOAD_ADDRESS)
+  .text.reloc _RUN_ADDRESS : AT(_LOAD_ADDRESS)
   {
-    _init = .;
-    KEEP(*(.init))      /* KEEP() "anchors" section for gc-sections */
-    _init_end = .;
+    _reloc = .;
+    KEEP(*(.reloc))      /* KEEP() "anchors" section for gc-sections */
+    _reloc_end = .;
   } >RAM
 
-  .text.postinit ALIGN(4) :
+  .text.postreloc ALIGN(4) :
   {
-    _postinit = .;
-    KEEP(*(.postinit))  /* KEEP() "anchors" section for gc-sections */
-    . = ALIGN(4);       /* long align for init.S copying */
-    _postinit_end = .;
+    _postreloc = .;
+    KEEP(*(.postreloc))  /* KEEP() "anchors" section for gc-sections */
+    . = ALIGN(4);       /* long align for crt0.asm copying */
+    _postreloc_end = .;
   } >RAM
 
   .text ALIGN(4) :
   {
     _code = .;
+    *(.init*)           /* maybe we should keep these in their sections 🤔... */
     *(.text*)
+    *(.fini*)
     *(.rodata*)
     _code_end = .;
   } >RAM
@@ -138,7 +140,7 @@ SECTIONS
   {
     _data_start = .;
     *(.data*)
-    . = ALIGN(4);       /* long align for init.S copying */
+    . = ALIGN(4);       /* long align for crt0.asm copying */
     _data_end = .;
   } >RAM
 

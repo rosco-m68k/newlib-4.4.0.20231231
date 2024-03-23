@@ -441,6 +441,7 @@ case "${host}" in
 	;;
   *-*-rosco*)
     syscall_dir=rosco
+	newlib_cflags="${newlib_cflags} -ffunction-sections -fdata-sections"
     ;;
   *-*-tirtos*)
 	sys_dir=tirtos
