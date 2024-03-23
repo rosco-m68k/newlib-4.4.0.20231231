@@ -30,6 +30,9 @@ libtool
 POTFILES
 *-POTFILES
 
+!newlib/libc/include/sys/config.h
+!newlib/libc/sys/rdos/config.h
+
 winsup/aclocal.m4
 winsup/configure
 winsup/**/Makefile.in
