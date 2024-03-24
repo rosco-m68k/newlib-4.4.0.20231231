@@ -3,10 +3,10 @@
 ;  ___ ___ ___ ___ ___       _____|  _| . | |_
 ; |  _| . |_ -|  _| . |     |     | . | . | '_|
 ; |_| |___|___|___|___|_____|_|_|_|___|___|_,_|
-;                     |_____|       firmware v2
+;                     |_____|           stdlibs
 ;------------------------------------------------------------
 ; Copyright (c)2019-2024 Ross Bamford and contributors
-; See top-level LICENSE.md for licence information.
+; See rosco_m68k LICENSE.md for licence information.
 ;
 ; Public equates for rosco_m68k firmware
 ;

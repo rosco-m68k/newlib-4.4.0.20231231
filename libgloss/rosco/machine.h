@@ -4,10 +4,10 @@
  *  ___ ___ ___ ___ ___       _____|  _| . | |_ 
  * |  _| . |_ -|  _| . |     |     | . | . | '_|
  * |_| |___|___|___|___|_____|_|_|_|___|___|_,_| 
- *                     |_____|       firmware v1                 
+ *                     |_____|           stdlibs
  * ------------------------------------------------------------
- * Copyright (c)2019-2023 Ross Bamford & contributors
- * See top-level LICENSE.md for licence information.
+ * Copyright (c)2019-2024 Ross Bamford & contributors
+ * See rosco_m68k LICENSE.md for licence information.
  *
  * C prototypes for system routines implemented in assembly.
  * ------------------------------------------------------------
@@ -154,6 +154,14 @@
 #define DUART_OPCR    DUART_W_OUTPORTCFG
 #endif
 
+#define FD_STDIN      0
+#define FD_STDOUT     1
+#define FD_STDERR     2
+
+#define FN_STDIN      "stdin"
+#define FN_STDOUT     "stdout"
+#define FN_STDERR     "stderr"
+
 /*
  * The firmware contains a RomVersionInfo at _FIRMWARE_REV.
  */
@@ -202,9 +210,9 @@ typedef struct {
  * Absolute symbols defined in linker script
  */
 extern uint32_t       _INITIAL_STACK;     // firmware stack top (mem top)
-extern void           (*_WARM_BOOT)();      // firmware warm boot address
+extern void           (*_WARM_BOOT)(void);      // firmware warm boot address
 
-extern void           (*_MFP_VECTORS[16])();  // MFP interrupt vectors
+extern void           (*_MFP_VECTORS[16])(void);  // MFP interrupt vectors
 
 extern uint32_t       _SDB_MAGIC;           // SDB magic number
 extern uint32_t       _SDB_STATUS;          // SDB status code
@@ -217,19 +225,19 @@ extern uint32_t       _SDB_UART_BASE;       // Default UART base address
 extern uint32_t       _SDB_CPU_INFO;        // CPU info (high 3 bits = model, rest of bits = speed).
 
 // NOTE: These are not generally callable from C
-extern void           (*_EFP_PRINT)();        // ROM EFP vectors
-extern void           (*_EFP_PRINTLN)();   
-extern void           (*_EFP_PRINTCHAR)(); 
-extern void           (*_EFP_HALT)();      
-extern void           (*_EFP_SENDCHAR)();  
-extern void           (*_EFP_RECVCHAR)();  
-extern void           (*_EFP_CLRSCR)();    
-extern void           (*_EFP_MOVEXY)();    
-extern void           (*_EFP_SETCURSOR)(); 
-extern void           (*_EFP_CHECKCHAR)();  
-extern void           (*_EFP_PROGLOADER)();
-extern void           (*_EFP_INPUTCHAR)();
-extern void           (*_EFP_CHECKINPUT)();
+extern void           (*_EFP_PRINT)(void);        // ROM EFP vectors
+extern void           (*_EFP_PRINTLN)(void);   
+extern void           (*_EFP_PRINTCHAR)(void); 
+extern void           (*_EFP_HALT)(void);      
+extern void           (*_EFP_SENDCHAR)(void);  
+extern void           (*_EFP_RECVCHAR)(void);  
+extern void           (*_EFP_CLRSCR)(void);    
+extern void           (*_EFP_MOVEXY)(void);    
+extern void           (*_EFP_SETCURSOR)(void); 
+extern void           (*_EFP_CHECKCHAR)(void);  
+extern void           (*_EFP_PROGLOADER)(void);
+extern void           (*_EFP_INPUTCHAR)(void);
+extern void           (*_EFP_CHECKINPUT)(void);
 
 extern char           _FIRMWARE[];          // ROM firmware start address
 extern uint32_t       _FIRMWARE_REV;        // rosco ROM firmware revision
@@ -263,12 +271,12 @@ void mcSendchar(char c);
 /*
  * Read character on default UART  (may block)
  */
-char mcReadchar();
+char mcReadchar(void);
 
 /*
  * Check if character waiting on default UART
  */
-bool mcCheckchar(); // returns true if char waiting
+bool mcCheckchar(void); // returns true if char waiting
 
 /*
  * Busywait for a while. The actual time is wholly dependent
@@ -287,7 +295,7 @@ void mcDelaymsec10(uint32_t ticks10ms);
 /*
  * Disable all interrupts (except NMI) and return existing priority mask.
  */
-uint8_t mcDisableInterrupts();
+uint8_t mcDisableInterrupts(void);
 
 /*
  * Enable interrupts according to priority mask.
@@ -298,17 +306,17 @@ void mcEnableInterrupts(uint8_t mask);
  * Disable interrupts and halt the machine. The only way to
  * recover from this is via wetware intervention.
  */
-noreturn void mcHalt();
+noreturn void mcHalt(void);
 
 /*
  * Check if the firmware supports character devices.
  */
-bool mcCheckDeviceSupport();
+bool mcCheckDeviceSupport(void);
 
 /*
  * Get the number of character devices known to the firmware.
  */
-uint8_t mcGetDeviceCount();
+uint8_t mcGetDeviceCount(void);
 
 /*
  * Populate the given `CHAR_DEVICE` structure for a device.
@@ -359,18 +367,22 @@ uint8_t mcAddDevice(CharDevice *newDevice);
 /*
  * Get vector base (either VBR or 0 depending on CPU).
  */
-uint32_t mcGetVecBase();
+uint32_t mcGetVecBase(void);
 
 /*
  * Read character on from default user input (may block)
  */
-char mcInputchar();
+char mcInputchar(void);
 
 /*
  * Check if character waiting on default user input
  */
-bool mcCheckInput(); // returns true if char waiting
+bool mcCheckInput(void); // returns true if char waiting
 
+/*
+ * Get stack pointer (at callsite)
+ */
+uint32_t mcGetStackPointer(void);
 
 #endif
 

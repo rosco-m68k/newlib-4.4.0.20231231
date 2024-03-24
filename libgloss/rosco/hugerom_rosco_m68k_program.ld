@@ -7,7 +7,7 @@
  *                     |_____|         libraries
  * ------------------------------------------------------------
  * Copyright (c)2020-2024 Ross Bamford & Contributors
- * See top-level LICENSE.md for licence information.
+ * See rosco_m68k LICENSE.md for licence information.
  *
  * Link script for code that is loaded by the serial-receive
  * boot loader.

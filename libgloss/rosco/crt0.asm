@@ -6,7 +6,7 @@
 ;                     |_____|           stdlibs
 ;------------------------------------------------------------
 ; Copyright (c)2020-2024 Ross Bamford & Contributors
-; See top-level LICENSE.md for licence information.
+; See rosco_m68k LICENSE.md for licence information.
 ;
 ; This is the initialization code. The loader jumps into this code after the
 ; "program" is received via serial.

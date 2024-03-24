@@ -2,11 +2,11 @@
 ;                                  ___ ___ _   
 ;  ___ ___ ___ ___ ___       _____|  _| . | |_ 
 ; |  _| . |_ -|  _| . |     |     | . | . | '_|
-; |_| |___|___|___|___|_____|_|_|_|___|___|_,_| 
-;                     |_____|         libraries               
+; |_| |___|___|___|___|_____|_|_|_|___|___|_,_|
+;                     |_____|           stdlibs
 ;------------------------------------------------------------
 ; Copyright (c)2020-2024 Ross Bamford & contributors
-; See top-level LICENSE.md for licence information.
+; See rosco_m68k LICENSE.md for licence information.
 ;
 ; System call implementations 
 ;------------------------------------------------------------
@@ -337,3 +337,14 @@ mcCheckInput::
     ext.l   D0
     move.l  (A7)+,D1                  ; Restore regs
     rts                               ; We're done.
+
+; Get the stack pointer at the call-site
+;
+; Trashes: Nothing
+; Modifies: D0 (return)
+    section .text.mcGetStackPointer
+mcGetStackPointer::
+    move.l  A7,D0
+    add.l   #4,D0
+    rts
+
