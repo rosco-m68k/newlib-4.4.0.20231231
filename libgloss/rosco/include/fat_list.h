@@ -1,5 +1,5 @@
-#ifndef __FAT_LIST_H__
-#define __FAT_LIST_H__
+#ifndef  __ROSCOM68K_LIBC_FAT_LIST_H__
+#define  __ROSCOM68K_LIBC_FAT_LIST_H__
 
 #ifndef FAT_ASSERT
     #define FAT_ASSERT(x)

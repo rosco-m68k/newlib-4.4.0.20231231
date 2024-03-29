@@ -13,8 +13,8 @@
  * ------------------------------------------------------------
  */
 
-#ifndef ROSCO_M68K_SDFAT_H
-#define ROSCO_M68K_SDFAT_H
+#ifndef __ROSCOM68K_LIBC_SDFAT_H__
+#define __ROSCOM68K_LIBC_SDFAT_H__
 
 #include <stdbool.h>
 #include <stdbool.h>
@@ -222,5 +222,5 @@ bool SD_get_csd(SDCard *sd, SDCard_CSD *csd);
  */
 uint32_t SD_get_size(SDCard *sd);
 
-#endif
+#endif //__ROSCOM68K_LIBC_SDFAT_H__
 

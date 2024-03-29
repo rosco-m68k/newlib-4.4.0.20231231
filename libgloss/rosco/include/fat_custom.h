@@ -19,7 +19,7 @@
 #define FATFS_INC_FORMAT_SUPPORT        1
 #define FATFS_INC_TIME_DATE_SUPPORT     0
 #define FATFS_INC_LFN_SUPPORT           1
-#define FATFS_DIR_LIST_SUPPORT          1
+#define FATFS_DIR_LIST_SUPPORT          0
 
 // Standard options
 #define FATFS_MAX_OPEN_FILES            16      /* 16KB */

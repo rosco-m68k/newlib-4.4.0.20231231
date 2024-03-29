@@ -82,7 +82,7 @@ int                 fl_attach_media(fn_diskio_read rd, fn_diskio_write wr);
 void                fl_shutdown(void);
 
 // Standard API
-void*               fl_fopen(const char *path, const char *modifiers);
+void*               fl_fopen(const char *path, const int flags);
 void                fl_fclose(void *file);
 int                 fl_fflush(void *file);
 int                 fl_fgetc(void *file);
@@ -109,8 +109,6 @@ int                 fl_closedir(FL_DIR* dir);
 void                fl_listdirectory(const char *path);
 int                 fl_createdirectory(const char *path);
 int                 fl_is_dir(const char *path);
-
-int                 fl_format(uint32 volume_sectors, const char *name);
 
 // Test hooks
 #ifdef FATFS_INC_TEST_HOOKS

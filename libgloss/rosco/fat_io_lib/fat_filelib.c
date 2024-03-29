@@ -31,6 +31,11 @@
 //-----------------------------------------------------------------------------
 #include <stdlib.h>
 #include <string.h>
+#include <fcntl.h>
+#include <errno.h>
+#undef errno
+extern int errno;
+
 #include "fat_defs.h"
 #include "fat_access.h"
 #include "fat_table.h"
@@ -79,29 +84,6 @@ static FL_FILE* _allocate_file(void)
         fat_list_insert_last(&_open_file_list, node);
 
     return fat_list_entry(node, FL_FILE, list_node);
-}
-//-----------------------------------------------------------------------------
-// _check_file_open: Returns true if the file is already open
-//-----------------------------------------------------------------------------
-static int _check_file_open(FL_FILE* file)
-{
-    struct fat_node *node;
-
-    // Compare open files
-    fat_list_for_each(&_open_file_list, node)
-    {
-        FL_FILE* openFile = fat_list_entry(node, FL_FILE, list_node);
-
-        // If not the current file
-        if (openFile != file)
-        {
-            // Compare path and name
-            if ( (fatfs_compare_names(openFile->path,file->path)) && (fatfs_compare_names(openFile->filename,file->filename)) )
-                return 1;
-        }
-    }
-
-    return 0;
 }
 //-----------------------------------------------------------------------------
 // _free_file: Free open file handle
@@ -182,13 +164,6 @@ static int _create_directory(char *path)
 
     // Split full path into filename and directory path
     if (fatfs_split_path((char*)path, file->path, sizeof(file->path), file->filename, sizeof(file->filename)) == -1)
-    {
-        _free_file(file);
-        return 0;
-    }
-
-    // Check if file already open
-    if (_check_file_open(file))
     {
         _free_file(file);
         return 0;
@@ -330,7 +305,10 @@ static FL_FILE* _open_file(const char *path)
     // Allocate a new file handle
     file = _allocate_file();
     if (!file)
+    {
+        errno = EMFILE;
         return NULL;
+    }
 
     // Clear filename
     memset(file->path, '\0', sizeof(file->path));
@@ -340,25 +318,22 @@ static FL_FILE* _open_file(const char *path)
     if (fatfs_split_path((char*)path, file->path, sizeof(file->path), file->filename, sizeof(file->filename)) == -1)
     {
         _free_file(file);
-        return NULL;
-    }
-
-    // Check if file already open
-    if (_check_file_open(file))
-    {
-        _free_file(file);
+        errno = ENAMETOOLONG;
         return NULL;
     }
 
     // If file is in the root dir
     if (file->path[0]==0)
+    {
         file->parentcluster = fatfs_get_root_cluster(&_fs);
+    }
     else
     {
         // Find parent directory start cluster
         if (!_open_directory(file->path, &file->parentcluster))
         {
             _free_file(file);
+            errno = ENOENT;
             return NULL;
         }
     }
@@ -389,13 +364,14 @@ static FL_FILE* _open_file(const char *path)
         }
 
     _free_file(file);
+    errno = ENOENT;
     return NULL;
 }
 //-----------------------------------------------------------------------------
 // _create_file: Create a new file
 //-----------------------------------------------------------------------------
 #if FATFS_INC_WRITE_SUPPORT
-static FL_FILE* _create_file(const char *filename)
+static FL_FILE* _create_file(const char *filename, int exclusive)
 {
     FL_FILE* file;
     struct fat_dir_entry sfEntry;
@@ -422,13 +398,6 @@ static FL_FILE* _create_file(const char *filename)
         return NULL;
     }
 
-    // Check if file already open
-    if (_check_file_open(file))
-    {
-        _free_file(file);
-        return NULL;
-    }
-
     // If file is in the root dir
     if (file->path[0] == 0)
         file->parentcluster = fatfs_get_root_cluster(&_fs);
@@ -438,15 +407,19 @@ static FL_FILE* _create_file(const char *filename)
         if (!_open_directory(file->path, &file->parentcluster))
         {
             _free_file(file);
+            errno = ENOENT;
             return NULL;
         }
     }
 
     // Check if same filename exists in directory
-    if (fatfs_get_file_entry(&_fs, file->parentcluster, file->filename,&sfEntry) == 1)
-    {
-        _free_file(file);
-        return NULL;
+    if (exclusive) {
+        if (fatfs_get_file_entry(&_fs, file->parentcluster, file->filename,&sfEntry) == 1)
+        {
+            _free_file(file);
+            errno = EEXIST;
+            return NULL;
+        }
     }
 
     file->startcluster = 0;
@@ -455,6 +428,7 @@ static FL_FILE* _create_file(const char *filename)
     if (!fatfs_allocate_free_space(&_fs, 1, &file->startcluster, 1))
     {
         _free_file(file);
+        errno = ENOSPC;
         return NULL;
     }
 
@@ -488,6 +462,7 @@ static FL_FILE* _create_file(const char *filename)
         fatfs_free_cluster_chain(&_fs, file->startcluster);
 
         _free_file(file);
+        errno = ENOSPC;
         return NULL;
     }
 #else
@@ -498,6 +473,7 @@ static FL_FILE* _create_file(const char *filename)
         fatfs_free_cluster_chain(&_fs, file->startcluster);
 
         _free_file(file);
+        errno = ENOSPC;
         return NULL;
     }
 
@@ -511,6 +487,7 @@ static FL_FILE* _create_file(const char *filename)
         fatfs_free_cluster_chain(&_fs, file->startcluster);
 
         _free_file(file);
+        errno = ENOSPC;
         return NULL;
     }
 #endif
@@ -522,6 +499,7 @@ static FL_FILE* _create_file(const char *filename)
         fatfs_free_cluster_chain(&_fs, file->startcluster);
 
         _free_file(file);
+        errno = ENOSPC;
         return NULL;
     }
 
@@ -666,7 +644,6 @@ int fl_attach_media(fn_diskio_read rd, fn_diskio_write wr)
     // Initialise FAT parameters
     if ((res = fatfs_init(&_fs)) != FAT_INIT_OK)
     {
-        FAT_PRINTF(("FAT_FS: Error could not load FAT details (%d)!\r\n", res));
         return res;
     }
 
@@ -688,7 +665,7 @@ void fl_shutdown(void)
 //-----------------------------------------------------------------------------
 // fopen: Open or Create a file for reading or writing
 //-----------------------------------------------------------------------------
-void* fl_fopen(const char *path, const char *mode)
+void* fl_fopen(const char *path, const int mode)
 {
     int i;
     FL_FILE* file;
@@ -703,78 +680,44 @@ void* fl_fopen(const char *path, const char *mode)
     if (!path || !mode)
         return NULL;
 
-    // Supported Modes:
-    // "r" Open a file for reading.
-    //        The file must exist.
-    // "w" Create an empty file for writing.
-    //        If a file with the same name already exists its content is erased and the file is treated as a new empty file.
-    // "a" Append to a file.
-    //        Writing operations append data at the end of the file.
-    //        The file is created if it does not exist.
-    // "r+" Open a file for update both reading and writing.
-    //        The file must exist.
-    // "w+" Create an empty file for both reading and writing.
-    //        If a file with the same name already exists its content is erased and the file is treated as a new empty file.
-    // "a+" Open a file for reading and appending.
-    //        All writing operations are performed at the end of the file, protecting the previous content to be overwritten.
-    //        You can reposition (fseek, rewind) the internal pointer to anywhere in the file for reading, but writing operations
-    //        will move it back to the end of file.
-    //        The file is created if it does not exist.
+    // TODO this is **not** fully compliant with the general contract of open!
+    if (mode & O_RDONLY) {
+        flags |= FILE_READ;
+    } else if (mode & O_WRONLY) {
+        flags |= FILE_WRITE;
+    } else if (mode & O_RDWR) {
+        flags |= FILE_READ | FILE_WRITE;
+    }
 
-    for (i=0;i<(int)strlen(mode);i++)
-    {
-        switch (mode[i])
-        {
-        case 'r':
-        case 'R':
-            flags |= FILE_READ;
-            break;
-        case 'w':
-        case 'W':
-            flags |= FILE_WRITE;
-            flags |= FILE_ERASE;
-            flags |= FILE_CREATE;
-            break;
-        case 'a':
-        case 'A':
-            flags |= FILE_WRITE;
-            flags |= FILE_APPEND;
-            flags |= FILE_CREATE;
-            break;
-        case '+':
-            if (flags & FILE_READ)
-                flags |= FILE_WRITE;
-            else if (flags & FILE_WRITE)
-            {
-                flags |= FILE_READ;
-                flags |= FILE_ERASE;
-                flags |= FILE_CREATE;
-            }
-            else if (flags & FILE_APPEND)
-            {
-                flags |= FILE_READ;
-                flags |= FILE_WRITE;
-                flags |= FILE_APPEND;
-                flags |= FILE_CREATE;
-            }
-            break;
-        case 'b':
-        case 'B':
-            flags |= FILE_BINARY;
-            break;
-        }
+    if (mode & O_APPEND) {
+        flags |= FILE_APPEND;        
+    }
+
+    if (mode & O_CREAT) {
+        flags |= FILE_CREATE;
+    }
+
+    if (mode & O_TRUNC) {
+        flags |= FILE_ERASE;
     }
 
     file = NULL;
 
 #if FATFS_INC_WRITE_SUPPORT == 0
     // No write support!
-    flags &= ~(FILE_CREATE | FILE_WRITE | FILE_APPEND);
+    if (flags & FILE_CREATE | FILE_WRITE) {
+        errno = EACCES;
+        return NULL;
+    }
 #endif
 
     // No write access - remove write/modify flags
-    if (!_fs.disk_io.write_media)
-        flags &= ~(FILE_CREATE | FILE_WRITE | FILE_APPEND);
+    if (!_fs.disk_io.write_media) {
+        if (flags & FILE_CREATE | FILE_WRITE) {
+            errno = EACCES;
+            return NULL;
+        }
+    }
 
     FL_LOCK(&_fs);
 
@@ -782,17 +725,32 @@ void* fl_fopen(const char *path, const char *mode)
     if (flags & FILE_READ)
         file = _open_file(path);
 
+    if (file && (flags & FILE_CREATE) && (mode & O_EXCL)) {
+        _free_file(file);
+        errno = EEXIST;
+        return NULL;
+    }
+
     // Create New
 #if FATFS_INC_WRITE_SUPPORT
     if (!file && (flags & FILE_CREATE))
-        file = _create_file(path);
+        file = _create_file(path, mode & O_EXCL);
 #endif
 
     // Write Existing (and not open due to read or create)
-    if (!(flags & FILE_READ))
-        if ((flags & FILE_CREATE) && !file)
-            if (flags & (FILE_WRITE | FILE_APPEND))
+    if (!(flags & FILE_READ)) {
+        if ((flags & FILE_CREATE) && !file) {
+            if (flags & (FILE_WRITE | FILE_APPEND)) {
                 file = _open_file(path);
+
+                if (file && (mode & O_EXCL)) {
+                    _free_file(file);
+                    errno = EEXIST;
+                    return NULL;
+                }
+            }
+        }
+    }
 
     if (file)
         file->flags = flags;
@@ -1407,6 +1365,28 @@ int fl_fputs(const char * str, void *f)
         return res;
 }
 #endif
+// _check_file_open: Returns true if the file is already open
+//-----------------------------------------------------------------------------
+static int _check_file_open(FL_FILE* file)
+{
+     struct fat_node *node;
+
+    // Compare open files
+    fat_list_for_each(&_open_file_list, node)
+    {
+        FL_FILE* openFile = fat_list_entry(node, FL_FILE, list_node);
+
+        // If not the current file
+        if (openFile != file)
+        {
+            // Compare path and name
+            if ( (fatfs_compare_names(openFile->path,file->path)) && (fatfs_compare_names(openFile->filename,file->filename)) )
+                return 1;
+        }
+    }
+
+    return 0;
+}
 //-----------------------------------------------------------------------------
 // fl_remove: Remove a file from the filesystem
 //-----------------------------------------------------------------------------
@@ -1418,21 +1398,24 @@ int fl_remove( const char * filename )
 
     FL_LOCK(&_fs);
 
-    // Use read_file as this will check if the file is already open!
-    file = (FL_FILE*)fl_fopen((char*)filename, "r");
+    // Ensure file isn't open!
+    file = (FL_FILE*)fl_fopen((char*)filename, O_RDONLY);
     if (file)
     {
-        // Delete allocated space
-        if (fatfs_free_cluster_chain(&_fs, file->startcluster))
+        if (!_check_file_open(file)) 
         {
-            // Remove directory entries
-            if (fatfs_mark_file_deleted(&_fs, file->parentcluster, (char*)file->shortfilename))
+            // Delete allocated space
+            if (fatfs_free_cluster_chain(&_fs, file->startcluster))
             {
-                // Close the file handle (this should not write anything to the file
-                // as we have not changed the file since opening it!)
-                fl_fclose(file);
+                // Remove directory entries
+                if (fatfs_mark_file_deleted(&_fs, file->parentcluster, (char*)file->shortfilename))
+                {
+                    // Close the file handle (this should not write anything to the file
+                    // as we have not changed the file since opening it!)
+                    fl_fclose(file);
 
-                res = 0;
+                    res = 0;
+                }
             }
         }
     }
@@ -1458,50 +1441,6 @@ int fl_createdirectory(const char *path)
     FL_UNLOCK(&_fs);
 
     return res;
-}
-#endif
-//-----------------------------------------------------------------------------
-// fl_listdirectory: List a directory based on a path
-//-----------------------------------------------------------------------------
-#if FATFS_DIR_LIST_SUPPORT
-void fl_listdirectory(const char *path)
-{
-    FL_DIR dirstat;
-
-    // If first call to library, initialise
-    CHECK_FL_INIT();
-
-    FL_LOCK(&_fs);
-
-    FAT_PRINTF(("\r\nDirectory %s\r\n", path));
-
-    if (fl_opendir(path, &dirstat))
-    {
-        struct fs_dir_ent dirent;
-
-        while (fl_readdir(&dirstat, &dirent) == 0)
-        {
-#if FATFS_INC_TIME_DATE_SUPPORT
-            int d,m,y,h,mn,s;
-            fatfs_convert_from_fat_time(dirent.write_time, &h,&m,&s);
-            fatfs_convert_from_fat_date(dirent.write_date, &d,&mn,&y);
-            FAT_PRINTF(("%02d/%02d/%04d  %02d:%02d      ", d,mn,y,h,m));
-#endif
-
-            if (dirent.is_dir)
-            {
-                FAT_PRINTF(("%s <DIR>\r\n", dirent.filename));
-            }
-            else
-            {
-                FAT_PRINTF(("%s [%ld bytes]\r\n", dirent.filename, dirent.size));
-            }
-        }
-
-        fl_closedir(&dirstat);
-    }
-
-    FL_UNLOCK(&_fs);
 }
 #endif
 //-----------------------------------------------------------------------------
@@ -1584,15 +1523,6 @@ int fl_is_dir(const char *path)
     return res;
 }
 #endif
-//-----------------------------------------------------------------------------
-// fl_format: Format a partition with either FAT16 or FAT32 based on size
-//-----------------------------------------------------------------------------
-#if FATFS_INC_FORMAT_SUPPORT
-int fl_format(uint32 volume_sectors, const char *name)
-{
-    return fatfs_format(&_fs, volume_sectors, name);
-}
-#endif /*FATFS_INC_FORMAT_SUPPORT*/
 //-----------------------------------------------------------------------------
 // fl_get_fs:
 //-----------------------------------------------------------------------------

@@ -381,18 +381,7 @@ int fatfs_write_sector(struct fatfs *fs, uint32 cluster, uint32 sector, uint8 *t
     }
 }
 #endif
-//-----------------------------------------------------------------------------
-// fatfs_show_details: Show the details about the filesystem
-//-----------------------------------------------------------------------------
-void fatfs_show_details(struct fatfs *fs)
-{
-    FAT_PRINTF(("FAT details:\r\n"));
-    FAT_PRINTF((" Type =%s", (fs->fat_type == FAT_TYPE_32) ? "FAT32": "FAT16"));
-    FAT_PRINTF((" Root Dir First Cluster = %lx\r\n", fs->rootdir_first_cluster));
-    FAT_PRINTF((" FAT Begin LBA = 0x%lx\r\n",fs->fat_begin_lba));
-    FAT_PRINTF((" Cluster Begin LBA = 0x%lx\r\n",fs->cluster_begin_lba));
-    FAT_PRINTF((" Sectors Per Cluster = %d\r\n", fs->sectors_per_cluster));
-}
+
 //-----------------------------------------------------------------------------
 // fatfs_get_root_cluster: Get the root dir cluster
 //-----------------------------------------------------------------------------

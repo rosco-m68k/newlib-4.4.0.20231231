@@ -15,6 +15,7 @@
  */
 
 OUTPUT_FORMAT("binary")
+OUTPUT_ARCH(m68k)
 ENTRY(_start)
 
 MEMORY
@@ -104,37 +105,38 @@ SECTIONS
   {
     _postreloc = .;
     KEEP(*(.postreloc))  /* KEEP() "anchors" section for gc-sections */
-    . = ALIGN(4);       /* long align for crt0.asm copying */
+    . = ALIGN(4);        /* long align for crt0.asm copying */
     _postreloc_end = .;
   } >RAM
 
   .text ALIGN(4) :
   {
     _code = .;
-    *(.init*)           /* maybe we should keep these in their sections 🤔... */
     *(.text*)
-    *(.fini*)
-    *(.rodata*)
+
+       _ctors        = .;
+    KEEP(*(.ctors))           /* Run in reverse order, so non-priority ones go first  */
+    KEEP(*(SORT(.ctors.*)))   /* followed by ctors with priority */
+      _ctors_end     = .;
+
+      _dtors         = .;
+    KEEP(*(SORT(.dtors.*)))   /* dtors with priority go first */
+    KEEP(*(.dtors))           /* Followed by non-priority ones */
+      _dtors_end     = .;
+
+    . = ALIGN(4);
+    *(.rodata .rodata.*)
+
+    . = ALIGN(4);
+    KEEP(*(.gcc_except_table))
+
+    . = ALIGN(4);
+    KEEP(*(.init*))     /* maybe we should keep these in their sections 🤔... */
+    KEEP(*(.fini*))
     _code_end = .;
   } >RAM
 
   . = DATA_SEGMENT_ALIGN(CONSTANT(MAXPAGESIZE), CONSTANT(COMMONPAGESIZE));
-
-  .ctors ALIGN(4) :
-  {
-      _ctors = .;
-      KEEP(*(.ctors))           /* Run in reverse order, so non-priority ones go first  */
-      KEEP(*(SORT(.ctors.*)))   /* followed by ctors with priority */
-      _ctors_end = .;
-  } >RAM
-
-  .dtors ALIGN(4) : 
-  {
-      _dtors = .;
-      KEEP(*(SORT(.dtors.*)))   /* dtors with priority go first */
-      KEEP(*(.dtors))           /* Followed by non-priority ones */
-      _dtors_end = .;
-  } >RAM
 
   .data ALIGN(4) :
   {

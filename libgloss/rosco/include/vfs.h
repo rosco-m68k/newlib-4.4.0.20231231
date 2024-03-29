@@ -12,17 +12,16 @@
  * low-level "VFS" layer for newlib
  * ------------------------------------------------------------
  */
-#ifndef _ROSCOM68K_VFS_H
-#define _ROSCOM68K_VFS_H
+#ifndef ___ROSCOM68K_LIBC_VFS_H__
+#define ___ROSCOM68K_LIBC_VFS_H__
 
 #include <stdint.h>
 
-typedef struct {
+#define STDIN_FN        "stdin"
+#define STDOUT_FN       "stdout"
+#define STDERR_FN       "stderr"
+#define SD_FN_PREFIX    "/SD/"
 
-} _RoscoDevice;
+#define REAL_FILE_OFS   32
 
-typedef struct {
-
-} _RoscoFile;
-
-#endif//_ROSCOM68K_VFS_H
+#endif //___ROSCOM68K_LIBC_VFS_H__

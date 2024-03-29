@@ -1,5 +1,5 @@
-#ifndef __FILESTRING_H__
-#define __FILESTRING_H__
+#ifndef ___ROSCOM68K_LIBC_FAT_STRING_H__
+#define ___ROSCOM68K_LIBC_FAT_STRING_H__
 
 //-----------------------------------------------------------------------------
 // Prototypes
@@ -17,4 +17,4 @@ int fatfs_create_path_string(char* path, char *filename, char* out, int maxlen);
     #define NULL 0
 #endif
 
-#endif
+#endif //___ROSCOM68K_LIBC_FAT_STRING_H__

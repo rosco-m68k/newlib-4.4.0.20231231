@@ -1,5 +1,5 @@
-#ifndef __FAT_TABLE_H__
-#define __FAT_TABLE_H__
+#ifndef  __ROSCOM68K_LIBC_FAT_TABLE_H__
+#define  __ROSCOM68K_LIBC_FAT_TABLE_H__
 
 #include "fat_opts.h"
 #include "fat_misc.h"

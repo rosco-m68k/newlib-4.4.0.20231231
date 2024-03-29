@@ -1,5 +1,7 @@
-#ifndef __FAT_OPTS_H__
-#define __FAT_OPTS_H__
+#ifndef  __ROSCOM68K_LIBC_FAT_OPTS_H__
+#define  __ROSCOM68K_LIBC_FAT_OPTS_H__
+
+#define FATFS_USE_CUSTOM_OPTS_FILE 1
 
 #ifdef FATFS_USE_CUSTOM_OPTS_FILE
     #include "fat_custom.h"
@@ -68,19 +70,6 @@
 
 // Sector size used
 #define FAT_SECTOR_SIZE                     512
-
-// Printf output (directory listing / debug)
-#ifndef FAT_PRINTF
-    // Don't include stdio, but there is a printf function available
-    #ifdef FAT_PRINTF_NOINC_STDIO
-        extern int printf(const char* ctrl1, ... );
-        #define FAT_PRINTF(a)               printf a
-    // Include stdio to use printf
-    #else
-        #include <stdio.h>
-        #define FAT_PRINTF(a)               printf a
-    #endif
-#endif
 
 // Time/Date support requires time.h
 #if FATFS_INC_TIME_DATE_SUPPORT

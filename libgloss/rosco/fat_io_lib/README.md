@@ -82,10 +82,6 @@ FATFS_INC_WRITE_SUPPORT
 FAT_SECTOR_SIZE
   Sector size used by buffers. Most likely to be 512 bytes (standard for ATA/IDE).
 
-FAT_PRINTF
-  A define that allows the File IO library to print to console/stdout. 
-  Provide your own printf function if printf not available.
-
 FAT_CLUSTER_CACHE_ENTRIES
   Size of cluster chain cache (can be undefined if not required).
   Mem used = FAT_CLUSTER_CACHE_ENTRIES * 4 * 2
@@ -102,9 +98,6 @@ FATFS_INC_TIME_DATE_SUPPORT  [1/0]
 
 FATFS_INC_FORMAT_SUPPORT
   Include support for formatting disks (FAT16 only).
-
-FAT_PRINTF_NOINC_STDIO
-  Disable use of printf & inclusion of stdio.h
 ```
 
 

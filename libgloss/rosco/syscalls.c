@@ -13,10 +13,14 @@
  * ------------------------------------------------------------
  */
 
+#include <stdint.h>
+#include <stdnoreturn.h>
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/times.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 #include <time.h>
 #include <string.h>
@@ -26,15 +30,40 @@
 extern int errno;
 
 #include "machine.h"
+#include "vfs.h"
+#include "sdfat.h"
+#include "fat_filelib.h"
 
 char *__env[1] = { 0 };
 char **environ = __env;
 
 static unsigned char *heap;
 static SystemDataBlock *sdb = (SystemDataBlock*)&_SDB_MAGIC;
+static int stdin_nonblock;
+
+static int fat_initialized;
+static uint32_t files_bmp;
+static void* files[32];
+
 extern void *_end;
 
-void _exit(int) {
+#define GUARD_FAT_INIT()                    \
+    do {                                    \
+        if (!SD_FAT_get_sd_card()) {        \
+            if (!SD_FAT_initialize()) {     \
+                errno = ENXIO;              \
+                return -1;                  \
+            }                               \
+            fat_initialized = 1;            \
+        }                                   \
+    } while (0)
+
+
+noreturn void _exit(int) {
+    if (fat_initialized) {
+        fl_shutdown();
+    }
+
     __asm__ __volatile__ (
         "moveal 0x490.l, %a0\n\t"
         "jmp %a0@\n\t"
@@ -43,7 +72,24 @@ void _exit(int) {
     __builtin_unreachable();
 }
 
+static inline int _sd_close(int file) {
+    GUARD_FAT_INIT();
+
+    if (files_bmp & (1 << file) == 0) {
+        errno = EBADF;
+        return -1;
+    }
+
+    fl_fclose(files[file]);
+    files_bmp &= ~(1 << file);
+    return 0;
+}
+
 int _close(int file) {
+    if (file >= REAL_FILE_OFS) {
+        return _sd_close(file - REAL_FILE_OFS);
+    }
+
     errno = EBADF;
     return -1;
 }
@@ -109,20 +155,66 @@ int _lseek(int file, int ptr, int dir) {
     }
 }
 
+int _sd_open(const char *name, int flags) {
+    GUARD_FAT_INIT();
+
+    if (files_bmp == 0xFFFFFFFF) {
+        errno = EMFILE;
+        return -1;
+    }
+
+    int num = -1;
+
+    for (int i = 0; i < 32; i++) {
+        if ((files_bmp & (1 << i)) == 0) {
+            num = i;
+            break;
+        }
+    }
+
+    if (num == -1) {
+        errno = EMFILE;
+        return -1;
+    }
+
+    void *file = fl_fopen(name + (strlen(SD_FN_PREFIX) - 1), flags);
+
+    if (!file) {
+        return -1;
+    }
+
+    files_bmp |= (1 << num);
+    files[num] = file;
+
+    return num + REAL_FILE_OFS;
+}
+
 int _open(const char *name, int flags, ...) {
-    errno = ENOSYS;
+    if (strncmp(SD_FN_PREFIX, name, strlen(SD_FN_PREFIX))) {
+        return _sd_open(name, flags);
+    } else if (strncmp(STDIN_FN, name, strlen(STDIN_FN))) {
+        // reopen stdin
+        stdin_nonblock = flags & O_NONBLOCK;
+        return STDIN_FILENO;
+    } else if (strncmp(STDOUT_FN, name, strlen(STDOUT_FN))) {
+        return STDOUT_FILENO;
+    } else if (strncmp(STDERR_FN, name, strlen(STDERR_FN))) {
+        return STDERR_FILENO;
+    }
+
+    errno = ENOENT;
     return -1;
 }
 
 static const char backspace[4] = { 0x08, 0x20, 0x08, 0x00 };
 static char sendbuf[2] = { 0x00, 0x00 };
 
-static int stdin_read(char *buf, int len) {
+static int _stdin_read(char *buf, int len) {
     int i;
 
     // always blocking, line buffered, return on newline or len
     for (i = 0; i < len; i++) {
-        char c = mcInputchar();
+        char c = _rosco_libc_mcInputchar();
 
         switch (c) {
         case 0x08:
@@ -130,7 +222,7 @@ static int stdin_read(char *buf, int len) {
             if (i > 0) {
                 buf[i-1] = 0;
                 i = i - 1;
-                mcPrint(backspace);
+                _rosco_libc_mcPrint(backspace);
             }
             break;
         case 0x0A:
@@ -140,12 +232,12 @@ static int stdin_read(char *buf, int len) {
         case 0x0D:
             // return
             buf[i] = '\n';
-            mcPrintln("");
+            _rosco_libc_mcPrintln("");
             return i + 1;
         default:
             buf[i] = c;
             sendbuf[0] = c;
-            mcPrint(sendbuf);
+            _rosco_libc_mcPrint(sendbuf);
         }
     }
 
@@ -154,7 +246,7 @@ static int stdin_read(char *buf, int len) {
 
 int _read(int file, char *ptr, int len) {
     if (file == STDIN_FILENO) {
-        return stdin_read(ptr, len);
+        return _stdin_read(ptr, len);
     }
 
     errno = EBADF;
@@ -172,7 +264,7 @@ caddr_t _sbrk(int incr) {
     prev = heap;
     new = heap + incr;
 
-    if (new >= mcGetStackPointer()) {
+    if (new >= _rosco_libc_mcGetStackPointer()) {
         // overflow
         errno = ENOMEM;
         return 01;
@@ -215,10 +307,10 @@ int _write(int file, char *ptr, int len) {
             // TODO we should _probably_ be doing this at the firmware level,
             // so as not to force it on all output devices....
             if (*ptr == '\n') {
-                mcPrintchar('\r');
+                _rosco_libc_mcPrintchar('\r');
             }
 
-            mcPrintchar(*ptr++);
+            _rosco_libc_mcPrintchar(*ptr++);
         }
 
         return len;

@@ -1,5 +1,5 @@
-#ifndef __FAT_CACHE_H__
-#define __FAT_CACHE_H__
+#ifndef  __ROSCOM68K_LIBC_FAT_CACHE_H__
+#define  __ROSCOM68K_LIBC_FAT_CACHE_H__
 
 #include "fat_filelib.h"
 

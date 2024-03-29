@@ -1,5 +1,5 @@
-#ifndef __FAT_ACCESS_H__
-#define __FAT_ACCESS_H__
+#ifndef  __ROSCOM68K_LIBC_FAT_ACCESS_H__
+#define  __ROSCOM68K_LIBC_FAT_ACCESS_H__
 
 #include "fat_defs.h"
 #include "fat_opts.h"
@@ -120,7 +120,6 @@ int     fatfs_sector_read(struct fatfs *fs, uint32 lba, uint8 *target, uint32 co
 int     fatfs_sector_write(struct fatfs *fs, uint32 lba, uint8 *target, uint32 count);
 int     fatfs_read_sector(struct fatfs *fs, uint32 cluster, uint32 sector, uint8 *target);
 int     fatfs_write_sector(struct fatfs *fs, uint32 cluster, uint32 sector, uint8 *target);
-void    fatfs_show_details(struct fatfs *fs);
 uint32  fatfs_get_root_cluster(struct fatfs *fs);
 uint32  fatfs_get_file_entry(struct fatfs *fs, uint32 Cluster, char *nametofind, STRUCT_PACKED_VOLATILE struct fat_dir_entry *sfEntry);
 int     fatfs_sfn_exists(struct fatfs *fs, uint32 Cluster, char *shortname);

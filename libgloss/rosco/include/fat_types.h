@@ -1,5 +1,5 @@
-#ifndef __FAT_TYPES_H__
-#define __FAT_TYPES_H__
+#ifndef  __ROSCOM68K_LIBC_FAT_TYPES_H__
+#define  __ROSCOM68K_LIBC_FAT_TYPES_H__
 
 // Detect 64-bit compilation on GCC
 #if defined(__GNUC__) && defined(__SIZEOF_LONG__)

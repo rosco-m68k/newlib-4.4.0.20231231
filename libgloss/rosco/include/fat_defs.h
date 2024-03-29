@@ -1,5 +1,5 @@
-#ifndef __FAT_DEFS_H__
-#define __FAT_DEFS_H__
+#ifndef  __ROSCOM68K_LIBC_FAT_DEFS_H__
+#define  __ROSCOM68K_LIBC_FAT_DEFS_H__
 
 #include "fat_opts.h"
 #include "fat_types.h"

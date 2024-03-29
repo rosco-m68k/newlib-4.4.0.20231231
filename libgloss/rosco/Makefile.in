@@ -81,7 +81,7 @@ ${BSP}: $(OBJS)
 	${RANLIB} $@
 
 syscalls.o: $(srcdir)/syscalls.c
-	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 $(INCLUDES) -c $(CFLAGS) $<
+	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 $(INCLUDES) -ffunction-sections -fdata-sections -c $(CFLAGS) $<
 
 machine.o: $(srcdir)/machine.asm
 	$(VASM) $(VASM_FLAGS) -o $@ $<
@@ -90,28 +90,28 @@ sdcard_asm.o: $(srcdir)/sdcard_asm.asm
 	$(VASM) $(VASM_FLAGS) -o $@ $<
 
 sdcard.o: $(srcdir)/sdcard.c
-	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 $(INCLUDES) -c $(CFLAGS) $<
+	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 $(INCLUDES) -ffunction-sections -fdata-sections -c $(CFLAGS) $<
 
 fat_access.o: $(srcdir)/fat_io_lib/fat_access.c
-	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 $(INCLUDES) -c $(CFLAGS) $<
+	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 $(INCLUDES) -ffunction-sections -fdata-sections -c $(CFLAGS) $<
 
 fat_cache.o: $(srcdir)/fat_io_lib/fat_cache.c
-	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 $(INCLUDES) -c $(CFLAGS) $<
+	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 $(INCLUDES) -ffunction-sections -fdata-sections -c $(CFLAGS) $<
 
 fat_filelib.o: $(srcdir)/fat_io_lib/fat_filelib.c
-	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 $(INCLUDES) -c $(CFLAGS) $<
+	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 $(INCLUDES) -ffunction-sections -fdata-sections -c $(CFLAGS) $<
 
 fat_misc.o: $(srcdir)/fat_io_lib/fat_misc.c
-	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 $(INCLUDES) -c $(CFLAGS) $<
+	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 $(INCLUDES) -ffunction-sections -fdata-sections -c $(CFLAGS) $<
 
 fat_string.o: $(srcdir)/fat_io_lib/fat_string.c
-	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 $(INCLUDES) -c $(CFLAGS) $<
+	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 $(INCLUDES) -ffunction-sections -fdata-sections -c $(CFLAGS) $<
 
 fat_table.o: $(srcdir)/fat_io_lib/fat_table.c
-	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 $(INCLUDES) -c $(CFLAGS) $<
+	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 $(INCLUDES) -ffunction-sections -fdata-sections -c $(CFLAGS) $<
 
 fat_write.o: $(srcdir)/fat_io_lib/fat_write.c
-	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 $(INCLUDES) -c $(CFLAGS) $<
+	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 $(INCLUDES) -ffunction-sections -fdata-sections -c $(CFLAGS) $<
 
 install: $($(CPU)_INSTALL)
 	${mkinstalldirs} ${DESTDIR}${tooldir}/lib${MULTISUBDIR}
