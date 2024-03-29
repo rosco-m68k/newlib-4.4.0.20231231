@@ -14,7 +14,7 @@
  * ------------------------------------------------------------
  */
 
-OUTPUT_FORMAT("elf32-m68k")
+OUTPUT_FORMAT("binary")
 ENTRY(_start)
 
 MEMORY

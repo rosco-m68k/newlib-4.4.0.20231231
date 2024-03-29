@@ -114,22 +114,47 @@ int _open(const char *name, int flags, ...) {
     return -1;
 }
 
+static const char backspace[4] = { 0x08, 0x20, 0x08, 0x00 };
+static char sendbuf[2] = { 0x00, 0x00 };
+
+static int stdin_read(char *buf, int len) {
+    int i;
+
+    // always blocking, line buffered, return on newline or len
+    for (i = 0; i < len; i++) {
+        char c = mcInputchar();
+
+        switch (c) {
+        case 0x08:
+        case 0x7F:  /* DEL */
+            if (i > 0) {
+                buf[i-1] = 0;
+                i = i - 1;
+                mcPrint(backspace);
+            }
+            break;
+        case 0x0A:
+            // throw this away...
+            i -= 1;
+            break;
+        case 0x0D:
+            // return
+            buf[i] = '\n';
+            mcPrintln("");
+            return i + 1;
+        default:
+            buf[i] = c;
+            sendbuf[0] = c;
+            mcPrint(sendbuf);
+        }
+    }
+
+    return i;
+}
+
 int _read(int file, char *ptr, int len) {
     if (file == STDIN_FILENO) {
-        int i;
-
-        // always blocking, return on newline or len
-        for (i = 0; i < len; i++) {
-            *ptr = mcInputchar();
-
-            if (*ptr == '\n') {
-                return i + 1;
-            }
-
-            ptr++;
-        }
-
-        return i;
+        return stdin_read(ptr, len);
     }
 
     errno = EBADF;
