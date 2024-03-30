@@ -212,8 +212,12 @@ static char sendbuf[2] = { 0x00, 0x00 };
 static int _stdin_read(char *buf, int len) {
     int i;
 
-    // always blocking, line buffered, return on newline or len
+    // line buffered unless O_NONBLOCK, return on newline or len
     for (i = 0; i < len; i++) {
+        if (stdin_nonblock && !_rosco_libc_mcCheckInput()) {
+            return i;
+        }
+
         char c = _rosco_libc_mcInputchar();
 
         switch (c) {
