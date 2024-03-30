@@ -246,37 +246,37 @@ extern char           _LOAD_ADDRESS[];      // firmware load address
 /*
  * Print null-terminated string on default console/UART  (may block)
  */
-void _rosco_libc_mcPrint(char *str);
+void mcPrint(char *str);
 
 /*
  * Print null-terminated string on default console/UART with newline  (may block)
  */
-void _rosco_libc_mcPrintln(char *str);
+void mcPrintln(char *str);
 
 /*
  * Print character on default console/UART with newline (may block)
  */
-void _rosco_libc_mcPrintchar(char c);
+void mcPrintchar(char c);
 
 /*
  * Show or hide cursor (on devices where possible, otherwise no-op)
  */
-void _rosco_libc_mcSetcursor(bool showcursor);
+void mcSetcursor(bool showcursor);
 
 /*
  * Print character on default UART (may block)
  */
-void _rosco_libc_mcSendchar(char c);
+void mcSendchar(char c);
 
 /*
  * Read character on default UART  (may block)
  */
-char _rosco_libc_mcReadchar(void);
+char mcReadchar(void);
 
 /*
  * Check if character waiting on default UART
  */
-bool _rosco_libc_mcCheckchar(void); // returns true if char waiting
+bool mcCheckchar(void); // returns true if char waiting
 
 /*
  * Busywait for a while. The actual time is wholly dependent
@@ -285,52 +285,52 @@ bool _rosco_libc_mcCheckchar(void); // returns true if char waiting
  *   ~2.25 usec per-tick with  8MHz CPU
  *   ~1.80 usec per tick with 10Mhz CPU
  */
-void _rosco_libc_mcBusywait(uint32_t ticks);
+void mcBusywait(uint32_t ticks);
 
 /*
  * Delay for n 10ms ticks (using 100Hz timer interrupt)
  */
-void _rosco_libc_mcDelaymsec10(uint32_t ticks10ms);
+void mcDelaymsec10(uint32_t ticks10ms);
 
 /*
  * Disable all interrupts (except NMI) and return existing priority mask.
  */
-uint8_t _rosco_libc_mcDisableInterrupts(void);
+uint8_t mcDisableInterrupts(void);
 
 /*
  * Enable interrupts according to priority mask.
  */
-void _rosco_libc_mcEnableInterrupts(uint8_t mask);
+void mcEnableInterrupts(uint8_t mask);
 
 /*
  * Disable interrupts and halt the machine. The only way to
  * recover from this is via wetware intervention.
  */
-noreturn void _rosco_libc_mcHalt(void);
+noreturn void mcHalt(void);
 
 /*
  * Check if the firmware supports character devices.
  */
-bool _rosco_libc_mcCheckDeviceSupport(void);
+bool mcCheckDeviceSupport(void);
 
 /*
  * Get the number of character devices known to the firmware.
  */
-uint8_t _rosco_libc_mcGetDeviceCount(void);
+uint8_t mcGetDeviceCount(void);
 
 /*
  * Populate the given `CHAR_DEVICE` structure for a device.
  * 
  * Returns `true` if the call succeeded, `false` otherwise.
  */
-bool _rosco_libc_mcGetDevice(uint8_t num, CharDevice *device);
+bool mcGetDevice(uint8_t num, CharDevice *device);
 
 /*
  * Call the CHECKCHAR function on the given device.
  *
  * Returns `true` if a character is available, `false` otherwise.
  */
-bool _rosco_libc_mcCheckDevice(CharDevice *device);
+bool mcCheckDevice(CharDevice *device);
 
 /*
  * Call the RECVCHAR function on the given device. This may
@@ -338,7 +338,7 @@ bool _rosco_libc_mcCheckDevice(CharDevice *device);
  *
  * Returns the received character.
  */
-char _rosco_libc_mcReadDevice(CharDevice *device);
+char mcReadDevice(CharDevice *device);
 
 /* 
  * Call the SENDCHAR function on the given device.
@@ -346,14 +346,14 @@ char _rosco_libc_mcReadDevice(CharDevice *device);
  * N.B. The `device` parameter must point to a `CharDevice` struct.
  * It has `void*` type for compatibility with `fctprintf`.
  */
-void _rosco_libc_mcSendDevice(char chr, void *device);
+void mcSendDevice(char chr, void *device);
 
 /*
  * Call the DEVICE_CTRL function on the given device.
  *
  * Returns 0 if unknown command, device/command-specific result otherwise.
  */
-uint32_t _rosco_libc_mcDeviceCtrl(uint32_t command, uint32_t data, CharDevice *device);
+uint32_t mcDeviceCtrl(uint32_t command, uint32_t data, CharDevice *device);
 
 /*
  * Add a device in the next available slot.
@@ -362,27 +362,27 @@ uint32_t _rosco_libc_mcDeviceCtrl(uint32_t command, uint32_t data, CharDevice *d
  * 
  * Returns 0-15 index of the device. Any other value indicates failure.
  */
-uint8_t _rosco_libc_mcAddDevice(CharDevice *newDevice);
+uint8_t mcAddDevice(CharDevice *newDevice);
 
 /*
  * Get vector base (either VBR or 0 depending on CPU).
  */
-uint32_t _rosco_libc_mcGetVecBase(void);
+uint32_t mcGetVecBase(void);
 
 /*
  * Read character on from default user input (may block)
  */
-char _rosco_libc_mcInputchar(void);
+char mcInputchar(void);
 
 /*
  * Check if character waiting on default user input
  */
-bool _rosco_libc_mcCheckInput(void); // returns true if char waiting
+bool mcCheckInput(void); // returns true if char waiting
 
 /*
  * Get stack pointer (at callsite)
  */
-uint32_t _rosco_libc_mcGetStackPointer(void);
+uint32_t mcGetStackPointer(void);
 
 #endif //__ROSCOM68K_LIBC_MACHINE_H__
 

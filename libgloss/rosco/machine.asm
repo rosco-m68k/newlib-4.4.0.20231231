@@ -16,8 +16,8 @@
 ;
 ; Trashes: MFP_UDR
 ; Modifies: Nothing
-    section .text._rosco_libc_mcPrint
-_rosco_libc_mcPrint::
+    section .text.mcPrint
+mcPrint::
     movem.l D0-D1/A0,-(A7)            ; Save regs
     move.l  (16,A7),A0                ; Get C char* from the stack into A0
     move.l  #0,D1                     ; Func code is 0 PRINT
@@ -29,8 +29,8 @@ _rosco_libc_mcPrint::
 ;
 ; Trashes: MFP_UDR
 ; Modifies: Nothing
-    section .text._rosco_libc_mcPrintln
-_rosco_libc_mcPrintln::
+    section .text.mcPrintln
+mcPrintln::
     movem.l D0-D1/A0,-(A7)            ; Save regs
     move.l  (16,A7),A0                ; Get C char* from the stack into A0
     move.l  #1,D1                     ; Func code is 1 PRINTLN
@@ -42,8 +42,8 @@ _rosco_libc_mcPrintln::
 ;
 ; Trashes: MFP_UDR
 ; Modifies: Nothing
-    section .text._rosco_libc_mcPrintchar
-_rosco_libc_mcPrintchar::
+    section .text.mcPrintchar
+mcPrintchar::
     move.l  (4,A7),D0                 ; Get C char from the stack into D0
     move.l  #4,D1                     ; Func code is 4 PRINTCHAR
     trap    #14                       ; TRAP to firmware
@@ -53,8 +53,8 @@ _rosco_libc_mcPrintchar::
 ;
 ; Trashes:  -
 ; Modifies: - (does not)
-    section .text._rosco_libc_mcSetcursor
-_rosco_libc_mcSetcursor::
+    section .text.mcSetcursor
+mcSetcursor::
     move.l  D1,-(A7)                  ; Save regs
     move.l  (8,A7),D0                 ; Get C bool into D0 (0=cursor off/cursor on)
     move.l  #5,D1                     ; Func code is 4 SETCURSOR
@@ -66,8 +66,8 @@ _rosco_libc_mcSetcursor::
 ;
 ; Trashes: MFP_UDR
 ; Modifies: Nothing
-    section .text._rosco_libc_mcSendchar
-_rosco_libc_mcSendchar::
+    section .text.mcSendchar
+mcSendchar::
     movem.l D0-D1,-(A7)               ; Save regs
     move.l  (12,A7),D0                ; Get C char from the stack into D0
     move.l  #2,D1                     ; Func code is 2 SENDCHAR
@@ -79,8 +79,8 @@ _rosco_libc_mcSendchar::
 ;
 ; Trashes: MFP_UDR
 ; Modifies: D0 (return)
-    section .text._rosco_libc_mcReadchar
-_rosco_libc_mcReadchar::
+    section .text.mcReadchar
+mcReadchar::
     move.l  D1,-(A7)                  ; Save regs
     move.l  #3,D1                     ; Func code is 3 RECVCHAR
     trap    #14                       ; TRAP to firmware
@@ -91,8 +91,8 @@ _rosco_libc_mcReadchar::
 ;
 ; Trashes: Nothing (MFP_UDR?)
 ; Modifies: D0 (return)
-    section .text._rosco_libc_mcCheckchar
-_rosco_libc_mcCheckchar::
+    section .text.mcCheckchar
+mcCheckchar::
     move.l  D1,-(A7)                  ; Save regs
     move.l  #6,D1                     ; Func code is 6 CHECKCHAR
     trap    #14                       ; TRAP to firmware
@@ -105,8 +105,8 @@ _rosco_libc_mcCheckchar::
 ; 
 ; Trashes: D0
 ; Modifies: Nothing
-    section .text._rosco_libc_mcBusywait
-_rosco_libc_mcBusywait::
+    section .text.mcBusywait
+mcBusywait::
     move.l  (4,A7),D0                 ; Get C delay count from the stack into D0
 .BUSYWAIT
     sub.l   #1,D0                     ; Keep decrementing D0...
@@ -119,8 +119,8 @@ _rosco_libc_mcBusywait::
 ; 
 ; Trashes: D0
 ; Modifies: Nothing
-    section .text._rosco_libc_mcDelaymsec10
-_rosco_libc_mcDelaymsec10::
+    section .text.mcDelaymsec10
+mcDelaymsec10::
     move.l  (4,A7),D0                 ; Get 10ms delay count from the stack into D0
     add.l   _TIMER_100HZ.w,D0         ; add to current timer counter for time finished
 .DELAYWAIT
@@ -133,8 +133,8 @@ _rosco_libc_mcDelaymsec10::
 ;
 ; Trashes: Nothing
 ; Modifies: D0 (return), SR
-    section .text._rosco_libc_mcDisableInterrupts
-_rosco_libc_mcDisableInterrupts::
+    section .text.mcDisableInterrupts
+mcDisableInterrupts::
     move.w  SR,D0                       ; Copy current SR into D0
     ori.w   #$0700,SR                   ; Disable all maskable interrupts
     lsr.w   #8,D0                       ; Shift interrupt mask for returning
@@ -145,8 +145,8 @@ _rosco_libc_mcDisableInterrupts::
 ;
 ; Trashes: Nothing
 ; Modifies: SR
-    section .text._rosco_libc_mcEnableInterrupts
-_rosco_libc_mcEnableInterrupts::
+    section .text.mcEnableInterrupts
+mcEnableInterrupts::
     movem.l D0-D1,-(A7)                 ; Save regs
     move.l  (12,A7),D0                  ; Get C uint8_t from stack into D0
     lsl.w   #8,D0                       ; Shift interrupt mask to location in SR
@@ -163,18 +163,18 @@ _rosco_libc_mcEnableInterrupts::
 ; Trashes: Nothing
 ; Modifies: Nothing
 ; Notes: No return
-    section .text._rosco_libc_mcHalt
-_rosco_libc_mcHalt::
+    section .text.mcHalt
+mcHalt::
     stop    #$2700
-    bra.s   _rosco_libc_mcHalt
+    bra.s   mcHalt
 
 
 ; Determine if character device support is in the firmware
 ;
 ; Trashes: Nothing
 ; Modifies: D0 (return - 0 if unsupported, or any other value if supported)
-    section .text._rosco_libc_mcCheckDeviceSupport
-_rosco_libc_mcCheckDeviceSupport::
+    section .text.mcCheckDeviceSupport
+mcCheckDeviceSupport::
     move.l  D1,-(A7)
     move.l  #7,D1
     moveq   #0,D0
@@ -193,8 +193,8 @@ _rosco_libc_mcCheckDeviceSupport::
 ;
 ; Trashes: Nothing
 ; Modifies: D0 (return)
-    section .text._rosco_libc_mcGetDeviceCount
-_rosco_libc_mcGetDeviceCount::
+    section .text.mcGetDeviceCount
+mcGetDeviceCount::
     move.l  D1,-(A7)
     move.l  #8,D1
     trap    #14
@@ -206,8 +206,8 @@ _rosco_libc_mcGetDeviceCount::
 ;
 ; Trashes: D0
 ; Modifies: A0 (return)
-    section .text._rosco_libc_mcGetDevice
-_rosco_libc_mcGetDevice::
+    section .text.mcGetDevice
+mcGetDevice::
     move.l  D1,-(A7)
     move.l  8(A7),D0
     move.l  12(A7),A0
@@ -221,8 +221,8 @@ _rosco_libc_mcGetDevice::
 ;
 ; Trashes: A0
 ; Modifies: D0 (return)
-    section .text._rosco_libc_mcAddDevice
-_rosco_libc_mcAddDevice::
+    section .text.mcAddDevice
+mcAddDevice::
     move.l  D1,-(A7)
     move.l  8(A7),A0
     move.l  #10,D1
@@ -235,8 +235,8 @@ _rosco_libc_mcAddDevice::
 ;
 ; Trashes: A0
 ; Modifies: D0 (return)
-    section .text._rosco_libc_mcCheckDevice
-_rosco_libc_mcCheckDevice::
+    section .text.mcCheckDevice
+mcCheckDevice::
     move.l  D1,-(A7)
     move.l  8(A7),A0
     move.l  #13,D1
@@ -249,8 +249,8 @@ _rosco_libc_mcCheckDevice::
 ;
 ; Trashes: A0
 ; Modifies: D0 (return)
-    section .text._rosco_libc_mcReadDevice
-_rosco_libc_mcReadDevice::
+    section .text.mcReadDevice
+mcReadDevice::
     move.l  D1,-(A7)
     move.l  8(A7),A0
     move.l  #11,D1
@@ -263,8 +263,8 @@ _rosco_libc_mcReadDevice::
 ;
 ; Trashes: D0, A0
 ; Modifies: Nothing
-    section .text._rosco_libc_mcSendDevice
-_rosco_libc_mcSendDevice::
+    section .text.mcSendDevice
+mcSendDevice::
     move.l  D1,-(A7)
     move.l  8(A7),D0
     move.l  12(A7),A0
@@ -278,8 +278,8 @@ _rosco_libc_mcSendDevice::
 ;
 ; Trashes: D0, A0
 ; Modifies: DUART registers
-    section .text._rosco_libc_mcDeviceCtrl
-_rosco_libc_mcDeviceCtrl::
+    section .text.mcDeviceCtrl
+mcDeviceCtrl::
     move.l  D1,-(A7)
     move.l  D2,-(A7)
     move.l  12(A7),D0
@@ -296,7 +296,7 @@ _rosco_libc_mcDeviceCtrl::
 ;
 ; Modifies: D0 (return value)
 SDB_CPUINFO     equ     $41C
-_rosco_libc_mcGetVecBase::
+mcGetVecBase::
   move.l    SDB_CPUINFO,d0                ; Get CPU info from SDB
   and.l     #$e0000000,d0                 ; Just the CPU model bits
   tst.l     d0                            ; is it 68000?
@@ -316,8 +316,8 @@ _rosco_libc_mcGetVecBase::
 ;
 ; Trashes: MFP_UDR
 ; Modifies: D0 (return)
-    section .text._rosco_libc_mcInputchar
-_rosco_libc_mcInputchar::
+    section .text.mcInputchar
+mcInputchar::
     move.l  D1,-(A7)                  ; Save regs
     move.l  #17,D1                    ; Func code is 17 INPUTCHAR
     trap    #14                       ; TRAP to firmware
@@ -328,8 +328,8 @@ _rosco_libc_mcInputchar::
 ;
 ; Trashes: Nothing (MFP_UDR?)
 ; Modifies: D0 (return)
-    section .text._rosco_libc_mcCheckInput
-_rosco_libc_mcCheckInput::
+    section .text.mcCheckInput
+mcCheckInput::
     move.l  D1,-(A7)                  ; Save regs
     move.l  #18,D1                    ; Func code is 18 CHECKINPUT
     trap    #14                       ; TRAP to firmware
@@ -342,8 +342,8 @@ _rosco_libc_mcCheckInput::
 ;
 ; Trashes: Nothing
 ; Modifies: D0 (return)
-    section .text._rosco_libc_mcGetStackPointer
-_rosco_libc_mcGetStackPointer::
+    section .text.mcGetStackPointer
+mcGetStackPointer::
     move.l  A7,D0
     add.l   #4,D0
     rts

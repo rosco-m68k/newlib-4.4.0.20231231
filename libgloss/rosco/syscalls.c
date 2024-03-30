@@ -214,11 +214,11 @@ static int _stdin_read(char *buf, int len) {
 
     // line buffered unless O_NONBLOCK, return on newline or len
     for (i = 0; i < len; i++) {
-        if (stdin_nonblock && !_rosco_libc_mcCheckInput()) {
+        if (stdin_nonblock && !mcCheckInput()) {
             return i;
         }
 
-        char c = _rosco_libc_mcInputchar();
+        char c = mcInputchar();
 
         switch (c) {
         case 0x08:
@@ -226,7 +226,7 @@ static int _stdin_read(char *buf, int len) {
             if (i > 0) {
                 buf[i-1] = 0;
                 i = i - 1;
-                _rosco_libc_mcPrint(backspace);
+                mcPrint(backspace);
             }
             break;
         case 0x0A:
@@ -236,12 +236,12 @@ static int _stdin_read(char *buf, int len) {
         case 0x0D:
             // return
             buf[i] = '\n';
-            _rosco_libc_mcPrintln("");
+            mcPrintln("");
             return i + 1;
         default:
             buf[i] = c;
             sendbuf[0] = c;
-            _rosco_libc_mcPrint(sendbuf);
+            mcPrint(sendbuf);
         }
     }
 
@@ -268,7 +268,7 @@ caddr_t _sbrk(int incr) {
     prev = heap;
     new = heap + incr;
 
-    if (new >= _rosco_libc_mcGetStackPointer()) {
+    if (new >= mcGetStackPointer()) {
         // overflow
         errno = ENOMEM;
         return 01;
@@ -311,10 +311,10 @@ int _write(int file, char *ptr, int len) {
             // TODO we should _probably_ be doing this at the firmware level,
             // so as not to force it on all output devices....
             if (*ptr == '\n') {
-                _rosco_libc_mcPrintchar('\r');
+                mcPrintchar('\r');
             }
 
-            _rosco_libc_mcPrintchar(*ptr++);
+            mcPrintchar(*ptr++);
         }
 
         return len;

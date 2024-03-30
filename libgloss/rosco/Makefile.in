@@ -64,6 +64,8 @@ BSP=	librosco.a
 
 SCRIPTS = hugerom_rosco_m68k_program.ld
 
+PLAF_INCLUDES= machine.h
+
 OBJS =  syscalls.o machine.o sdcard.o sdcard_asm.o fat_access.o fat_cache.o fat_filelib.o fat_misc.o fat_string.o fat_table.o fat_write.o
 
 CRT0 = crt0.o
@@ -114,7 +116,7 @@ fat_write.o: $(srcdir)/fat_io_lib/fat_write.c
 	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 $(INCLUDES) -ffunction-sections -fdata-sections -c $(CFLAGS) $<
 
 install: $($(CPU)_INSTALL)
-	${mkinstalldirs} ${DESTDIR}${tooldir}/lib${MULTISUBDIR}
+	${mkinstalldirs} ${DESTDIR}${tooldir}/lib${MULTISUBDIR} ${DESTDIR}${tooldir}/include/rosco_m68k
 	for c in $(CRT0); do \
 	  $(INSTALL_DATA) $$c $(DESTDIR)$(tooldir)/lib${MULTISUBDIR}/$$c ; \
 	done; 
@@ -124,6 +126,9 @@ install: $($(CPU)_INSTALL)
 	@for bsp in ${BSP}; do\
 	 $(INSTALL_PROGRAM) $${bsp} $(DESTDIR)$(tooldir)/lib${MULTISUBDIR}; \
 	done
+	for c in $(PLAF_INCLUDES); do \
+	  $(INSTALL_DATA) $(srcdir)/include/$$c $(DESTDIR)$(tooldir)/include/rosco_m68k/$$c ; \
+	done;
 
 clean mostlyclean:
 	rm -f *.o *.a
