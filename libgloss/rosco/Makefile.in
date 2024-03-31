@@ -64,9 +64,9 @@ BSP=	librosco.a
 
 SCRIPTS = hugerom_rosco_m68k_program.ld
 
-PLAF_INCLUDES= machine.h
+PLAF_INCLUDES= machine.h sdfat.h part.h part_mbr.h
 
-OBJS =  syscalls.o machine.o sdcard.o sdcard_asm.o fat_access.o fat_cache.o fat_filelib.o fat_misc.o fat_string.o fat_table.o fat_write.o
+OBJS =  syscalls.o machine.o sdcard.o sdcard_asm.o part.o fat_access.o fat_cache.o fat_filelib.o fat_misc.o fat_string.o fat_table.o fat_write.o
 
 CRT0 = crt0.o
 
@@ -92,6 +92,9 @@ sdcard_asm.o: $(srcdir)/sdcard_asm.asm
 	$(VASM) $(VASM_FLAGS) -o $@ $<
 
 sdcard.o: $(srcdir)/sdcard.c
+	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 $(INCLUDES) -ffunction-sections -fdata-sections -c $(CFLAGS) $<
+
+part.o: $(srcdir)/part.c
 	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 $(INCLUDES) -ffunction-sections -fdata-sections -c $(CFLAGS) $<
 
 fat_access.o: $(srcdir)/fat_io_lib/fat_access.c

@@ -674,18 +674,22 @@ void* fl_fopen(const char *path, const int mode)
     // If first call to library, initialise
     CHECK_FL_INIT();
 
-    if (!_filelib_valid)
+    if (!_filelib_valid) {
+        errno = ENXIO;
         return NULL;
+    }
 
-    if (!path || !mode)
+    if (!path) {
+        errno = EINVAL;
         return NULL;
+    }
 
     // TODO this is **not** fully compliant with the general contract of open!
-    if (mode & O_RDONLY) {
+    if ((mode & O_ACCMODE) == O_RDONLY) {
         flags |= FILE_READ;
-    } else if (mode & O_WRONLY) {
+    } else if ((mode & O_ACCMODE) == O_WRONLY) {
         flags |= FILE_WRITE;
-    } else if (mode & O_RDWR) {
+    } else if ((mode & O_ACCMODE) == O_RDWR) {
         flags |= FILE_READ | FILE_WRITE;
     }
 
@@ -722,8 +726,9 @@ void* fl_fopen(const char *path, const int mode)
     FL_LOCK(&_fs);
 
     // Read
-    if (flags & FILE_READ)
+    if (flags & FILE_READ) {
         file = _open_file(path);
+    }
 
     if (file && (flags & FILE_CREATE) && (mode & O_EXCL)) {
         _free_file(file);
@@ -980,24 +985,36 @@ int fl_fread(void * buffer, int size, int length, void *f )
     // If first call to library, initialise
     CHECK_FL_INIT();
 
-    if (buffer==NULL || file==NULL)
+    if (file==NULL) {
+        errno = EBADF;
         return -1;
+    }
 
     // No read permissions
-    if (!(file->flags & FILE_READ))
+    if (!(file->flags & FILE_READ)) {
+        errno = EACCES;
         return -1;
+    }
 
     // Nothing to be done
-    if (!count)
+    if (!count) {
         return 0;
+    }
 
     // Check if read starts past end of file
-    if (file->bytenum >= file->filelength)
+    if (file->bytenum >= file->filelength) {
+        return 0;
+    }
+
+    if (buffer==NULL) {
+        errno = ENOMEM;
         return -1;
+    }
 
     // Limit to file size
-    if ( (file->bytenum + count) > file->filelength )
+    if ( (file->bytenum + count) > file->filelength ) {
         count = file->filelength - file->bytenum;
+    }
 
     // Calculate start sector
     sector = file->bytenum / FAT_SECTOR_SIZE;
@@ -1220,8 +1237,10 @@ int fl_fwrite(const void * data, int size, int count, void *f )
     // If first call to library, initialise
     CHECK_FL_INIT();
 
-    if (!file)
+    if (!file) {
+        errno = EBADF;
         return -1;
+    }
 
     FL_LOCK(&_fs);
 
@@ -1229,6 +1248,7 @@ int fl_fwrite(const void * data, int size, int count, void *f )
     if (!(file->flags & FILE_WRITE))
     {
         FL_UNLOCK(&_fs);
+        errno = EACCES;
         return -1;
     }
 

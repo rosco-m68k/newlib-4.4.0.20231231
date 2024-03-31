@@ -128,8 +128,7 @@ int _isatty(int file) {
     case STDERR_FILENO:
         return 1;
     default:
-        errno = EBADF;
-        return -1;
+        return 0;
     }
 }
 
@@ -142,6 +141,25 @@ int _link(char *old, char *new) {
     errno = EMLINK;
     return -1;
 }
+
+static int _sd_lseek(int file, int ptr, int dir) {
+    if (file < REAL_FILE_OFS) {
+        errno = EBADF;
+        return -1;
+    }
+
+    file -= REAL_FILE_OFS;
+
+    if (files_bmp & (1 << file) == 0) {
+        errno = EBADF;
+        return -1;
+    }
+
+    void *f = files[file];
+
+    return fl_fseek(f, ptr, dir);
+}
+
 
 int _lseek(int file, int ptr, int dir) {
     switch (file) {
@@ -180,6 +198,7 @@ int _sd_open(const char *name, int flags) {
     void *file = fl_fopen(name + (strlen(SD_FN_PREFIX) - 1), flags);
 
     if (!file) {
+        // fl_fopen should have set errno...
         return -1;
     }
 
@@ -206,7 +225,7 @@ int _open(const char *name, int flags, ...) {
     return -1;
 }
 
-static const char backspace[4] = { 0x08, 0x20, 0x08, 0x00 };
+static char backspace[4] = { 0x08, 0x20, 0x08, 0x00 };
 static char sendbuf[2] = { 0x00, 0x00 };
 
 static int _stdin_read(char *buf, int len) {
@@ -248,13 +267,30 @@ static int _stdin_read(char *buf, int len) {
     return i;
 }
 
+static int _sd_read(int file, char *buf, int len) {
+    if (file < REAL_FILE_OFS) {
+        errno = EBADF;
+        return -1;
+    }
+
+    file -= REAL_FILE_OFS;
+
+    if (files_bmp & (1 << file) == 0) {
+        errno = EBADF;
+        return -1;
+    }
+
+    void *f = files[file];
+
+    return fl_fread(buf, 1, len, f);
+}
+
 int _read(int file, char *ptr, int len) {
     if (file == STDIN_FILENO) {
         return _stdin_read(ptr, len);
     }
 
-    errno = EBADF;
-    return -1;
+    return _sd_read(file, ptr, len);
 }
 
 caddr_t _sbrk(int incr) {
@@ -268,10 +304,10 @@ caddr_t _sbrk(int incr) {
     prev = heap;
     new = heap + incr;
 
-    if (new >= mcGetStackPointer()) {
+    if (((uint32_t)new) >= mcGetStackPointer()) {
         // overflow
         errno = ENOMEM;
-        return 01;
+        return (caddr_t)-1;
     }
 
     heap = new;
@@ -304,6 +340,24 @@ int _wait(int *status) {
     return -1;
 }
 
+static int _sd_write(int file, char *buf, int len) {
+    if (file < REAL_FILE_OFS) {
+        errno = EBADF;
+        return -1;
+    }
+
+    file -= REAL_FILE_OFS;
+
+    if (files_bmp & (1 << file) == 0) {
+        errno = EBADF;
+        return -1;
+    }
+
+    void *f = files[file];
+
+    return fl_fwrite(buf, 1, len, f);
+}
+
 int _write(int file, char *ptr, int len) {
     if (file == STDOUT_FILENO || file == STDERR_FILENO) {
         for (int i = 0; i < len; i++) {
@@ -320,8 +374,7 @@ int _write(int file, char *ptr, int len) {
         return len;
     }
 
-    errno = EBADF;
-    return -1;
+    return _sd_write(file, ptr, len);
 }
 
 int _gettimeofday(struct timeval *p, struct timezone *z) {

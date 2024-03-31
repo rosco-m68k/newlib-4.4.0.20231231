@@ -22,7 +22,7 @@
 #define FATFS_DIR_LIST_SUPPORT          0
 
 // Standard options
-#define FATFS_MAX_OPEN_FILES            16      /* 16KB */
+#define FATFS_MAX_OPEN_FILES            32      /* 32KB */
 
 // Lower-level but standard options
 #define FAT_BUFFER_SECTORS              8
