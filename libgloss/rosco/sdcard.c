@@ -50,12 +50,10 @@ bool SD_FAT_initialize() {
     }
 
     if (Part_init_SD(&part, &sdcard) != PART_INIT_OK) {
-        printf("Part init failed\n");
         return false;
     }
 
     if (!Part_valid(&part, 0)) {
-        printf("Part 0 not valid\n");
         return false;
     }
 
