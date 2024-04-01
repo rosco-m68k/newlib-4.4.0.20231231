@@ -55,7 +55,7 @@ bool _start_debugger(void) {
 }
 
 void _cleanup_debugger(void) {
-    duart_remove_interrupt();
+    _duart_remove_interrupt();
 }
 
 int _getDebugChar(void) {
@@ -71,7 +71,7 @@ int _getDebugChar(void) {
     // we can _significantly_ simplify this whole thing (the interrupt handler
     // would just need to yank breakpoint on ctrl-C and ignore everything else).
     //
-    n = duart_unbuffer_one(&uart_b, &buf);
+    n = _duart_unbuffer_one(&uart_b, &buf);
 
     // **************
     // Race Condition Here - _seems_ unlikely to hit, since if we're in this

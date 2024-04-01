@@ -42,7 +42,7 @@ duart_buffer_char::
 ;
 ; uint16_t unbuffer(RingBuffer *rb, uint8_t *outBuffer)
 ;
-duart_unbuffer::
+_duart_unbuffer::
         movem.l D1-D4/A0-A1,-(A7)
         move.w  SR,D4                           ; Save SR
         or.w    #$0700,SR                       ; No interrupts for a bit
@@ -77,7 +77,7 @@ duart_unbuffer::
 ;
 ; uint16_t unbuffer_one(RingBuffer *rb, uint8_t *outBuffer)
 ;
-duart_unbuffer_one::
+_duart_unbuffer_one::
         movem.l D1-D4/A0-A1,-(A7)
         move.w  SR,D4                           ; Save SR
         or.w    #$0700,SR                       ; No interrupts for a bit

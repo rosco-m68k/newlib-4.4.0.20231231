@@ -91,7 +91,7 @@ _duart_install_interrupt::
 
 ; C callable - void remove_interrupt(void)
 ;
-duart_remove_interrupt::
+_duart_remove_interrupt::
         movem.l D0/A0-A1,-(A7)
 
         move.w  SR,D0                           ; Save SR

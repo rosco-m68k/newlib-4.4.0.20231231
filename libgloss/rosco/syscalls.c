@@ -382,3 +382,6 @@ int _gettimeofday(struct timeval *p, struct timezone *z) {
     return -1;
 }
 
+void __attribute__((weak)) breakpoint() { 
+    // Weak empty breakpoint for when mgdb is not specified...
+}

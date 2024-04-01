@@ -61,13 +61,15 @@ OBJCOPY = `if [ -f ${objroot}/../binutils/objcopy ] ; \
 	else t='$(program_transform_name)'; echo objcopy | sed -e $$t ; fi`
 
 BSP=	librosco.a
-GBSP=	libgrosco.a
+
+GBSP=	librosco_gdb.a
 
 SCRIPTS = hugerom_rosco_m68k_program.ld
 
 PLAF_INCLUDES= machine.h sdfat.h part.h part_mbr.h debug.h
 
 OBJS =  syscalls.o machine.o sdcard.o sdcard_asm.o part.o fat_access.o fat_cache.o fat_filelib.o fat_misc.o fat_string.o fat_table.o fat_write.o
+
 GOBJS=  buffer.o interrupt.o m68k_stub_asm.o m68k_stub.o gdb_support.o
 
 CRT0 = crt0.o
@@ -89,8 +91,8 @@ ${BSP}: $(OBJS)
 	${STRIP} --strip-unneeded $@
 	${RANLIB} $@
 
-${GBSP}: $(OBJS) $(GOBJS)
-	${AR} ${ARFLAGS} $@ $(OBJS) $(GOBJS)
+${GBSP}: $(GOBJS)
+	${AR} ${ARFLAGS} $@ $(GOBJS)
 	${RANLIB} $@
 
 syscalls.o: $(srcdir)/syscalls.c

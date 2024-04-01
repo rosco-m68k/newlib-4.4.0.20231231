@@ -38,7 +38,7 @@ void _duart_install_interrupt(CharDevice *device, RingBuffer *uart_a, RingBuffer
 /**
  * Remove interrupt handler and restore the system to its original state.
  */
-void duart_remove_interrupt();
+void _duart_remove_interrupt();
 
 /**
  * Unbuffer waiting input from the given ringbuffer.
@@ -48,7 +48,7 @@ void duart_remove_interrupt();
  * 
  * @return uint16_t the actual unbuffered count
  */
-uint16_t duart_unbuffer(RingBuffer *rb, unsigned char *buffer);
+uint16_t _duart_unbuffer(RingBuffer *rb, unsigned char *buffer);
 
 /**
  * Unbuffer zero or one waiting characters from the given ringbuffer
@@ -58,6 +58,6 @@ uint16_t duart_unbuffer(RingBuffer *rb, unsigned char *buffer);
  * 
  * @return uint16_t the actual unbuffered count (0 or 1)
  */
-uint16_t duart_unbuffer_one(RingBuffer *rb, unsigned char *buffer);
+uint16_t _duart_unbuffer_one(RingBuffer *rb, unsigned char *buffer);
 
 #endif//__ROSCOM68K_LIBC_BUFFERED_UART_H__
