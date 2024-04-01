@@ -63,18 +63,22 @@ POSTRELOC:                              ; running from copied run addr location
 _enter::                                ; entrypoint at copied run addr location
     move.l  SDB_MEMSIZE,A7              ; reset stack to top of memory
  
-    jsr     _bss_init                   ; prepare C environment (clear .bss) 
+    jsr     _bss_init                   ; prepare C environment - clear .bss
+    jsr     _init                       ;                       - call global ctors
 
     move.l  #_fini,-(A7)                ; Set up _fini with atexit
     jsr     atexit
 
-    jsr     _init                       ; Call global constructors
+    ifd ROSCO_M68K_DEBUG
+    jsr     _start_debugger             ; Initialize debugging on UART 1
+    move.l  #_cleanup_debugger,(A7)     ; Make sure we cleanup debugging at exit
+    jsr     atexit
+    endif
 
     move.l  0,(A7)                      ; Stack 0 argc
     move.l  #NULL_ARRAY,-(A7)           ; Stack empty argv
     lea.l   main,A0
     jsr     (A0)                        ; Fly user program, Fly!
-    add.l   #8,A7                       ; Clean up stack
 
 .POSTMAIN:
     move.l  D0,-(A7)                    ; main return value to stack
@@ -97,8 +101,7 @@ _bss_init:
     dbra    d0,.loop
     rts
 
-    section .bss,bss
     align  4
+    section .bss,bss
 
 NULL_ARRAY      ds.l    1
-; SAVE_PROG_EXIT  ds.l    1

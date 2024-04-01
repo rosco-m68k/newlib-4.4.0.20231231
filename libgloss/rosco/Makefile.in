@@ -61,29 +61,40 @@ OBJCOPY = `if [ -f ${objroot}/../binutils/objcopy ] ; \
 	else t='$(program_transform_name)'; echo objcopy | sed -e $$t ; fi`
 
 BSP=	librosco.a
+GBSP=	libgrosco.a
 
 SCRIPTS = hugerom_rosco_m68k_program.ld
 
-PLAF_INCLUDES= machine.h sdfat.h part.h part_mbr.h
+PLAF_INCLUDES= machine.h sdfat.h part.h part_mbr.h debug.h
 
 OBJS =  syscalls.o machine.o sdcard.o sdcard_asm.o part.o fat_access.o fat_cache.o fat_filelib.o fat_misc.o fat_string.o fat_table.o fat_write.o
+GOBJS=  buffer.o interrupt.o m68k_stub_asm.o m68k_stub.o gdb_support.o
 
 CRT0 = crt0.o
+GCRT0= gcrt0.o
 
 #### Host specific Makefile fragment comes in here.
 @host_makefile_frag@
 
-all: $(CRT0) $(BSP)
+all: $(CRT0) $(GCRT0) $(BSP) $(GBSP)
 
-crt0.o: $(srcdir)/crt0.asm
+${CRT0}: $(srcdir)/crt0.asm
 	$(VASM) $(VASM_FLAGS) -o $@ $<
+
+${GCRT0}: $(srcdir)/crt0.asm
+	$(VASM) $(VASM_FLAGS) -DROSCO_M68K_DEBUG -o $@ $<
 
 ${BSP}: $(OBJS)
 	${AR} ${ARFLAGS} $@ $(OBJS)
+	${STRIP} --strip-unneeded $@
+	${RANLIB} $@
+
+${GBSP}: $(OBJS) $(GOBJS)
+	${AR} ${ARFLAGS} $@ $(OBJS) $(GOBJS)
 	${RANLIB} $@
 
 syscalls.o: $(srcdir)/syscalls.c
-	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 $(INCLUDES) -ffunction-sections -fdata-sections -c $(CFLAGS) $<
+	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 -g $(INCLUDES) -ffunction-sections -fdata-sections -c $(CFLAGS) $<
 
 machine.o: $(srcdir)/machine.asm
 	$(VASM) $(VASM_FLAGS) -o $@ $<
@@ -92,35 +103,56 @@ sdcard_asm.o: $(srcdir)/sdcard_asm.asm
 	$(VASM) $(VASM_FLAGS) -o $@ $<
 
 sdcard.o: $(srcdir)/sdcard.c
-	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 $(INCLUDES) -ffunction-sections -fdata-sections -c $(CFLAGS) $<
+	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 -g $(INCLUDES) -ffunction-sections -fdata-sections -c $(CFLAGS) $<
 
 part.o: $(srcdir)/part.c
-	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 $(INCLUDES) -ffunction-sections -fdata-sections -c $(CFLAGS) $<
+	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 -g $(INCLUDES) -ffunction-sections -fdata-sections -c $(CFLAGS) $<
 
 fat_access.o: $(srcdir)/fat_io_lib/fat_access.c
-	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 $(INCLUDES) -ffunction-sections -fdata-sections -c $(CFLAGS) $<
+	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 -g $(INCLUDES) -ffunction-sections -fdata-sections -c $(CFLAGS) $<
 
 fat_cache.o: $(srcdir)/fat_io_lib/fat_cache.c
-	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 $(INCLUDES) -ffunction-sections -fdata-sections -c $(CFLAGS) $<
+	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 -g $(INCLUDES) -ffunction-sections -fdata-sections -c $(CFLAGS) $<
 
 fat_filelib.o: $(srcdir)/fat_io_lib/fat_filelib.c
-	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 $(INCLUDES) -ffunction-sections -fdata-sections -c $(CFLAGS) $<
+	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 -g $(INCLUDES) -ffunction-sections -fdata-sections -c $(CFLAGS) $<
 
 fat_misc.o: $(srcdir)/fat_io_lib/fat_misc.c
-	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 $(INCLUDES) -ffunction-sections -fdata-sections -c $(CFLAGS) $<
+	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 -g $(INCLUDES) -ffunction-sections -fdata-sections -c $(CFLAGS) $<
 
 fat_string.o: $(srcdir)/fat_io_lib/fat_string.c
-	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 $(INCLUDES) -ffunction-sections -fdata-sections -c $(CFLAGS) $<
+	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 -g $(INCLUDES) -ffunction-sections -fdata-sections -c $(CFLAGS) $<
 
 fat_table.o: $(srcdir)/fat_io_lib/fat_table.c
-	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 $(INCLUDES) -ffunction-sections -fdata-sections -c $(CFLAGS) $<
+	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 -g $(INCLUDES) -ffunction-sections -fdata-sections -c $(CFLAGS) $<
 
 fat_write.o: $(srcdir)/fat_io_lib/fat_write.c
-	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 $(INCLUDES) -ffunction-sections -fdata-sections -c $(CFLAGS) $<
+	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 -g $(INCLUDES) -ffunction-sections -fdata-sections -c $(CFLAGS) $<
+
+#### GDB support stuff
+
+buffer.o: gdb/buffer.asm
+	$(VASM) $(VASM_FLAGS) -o $@ $<
+
+interrupt.o: gdb/interrupt.asm
+	$(VASM) $(VASM_FLAGS) -o $@ $<
+
+m68k_stub_asm.o: gdb/m68k_stub_asm.asm
+	$(VASM) $(VASM_FLAGS) -o $@ $<
+
+m68k_stub.o: gdb/m68k_stub.c
+	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 -g $(INCLUDES) -ffunction-sections -fdata-sections -c $(CFLAGS) $<
+
+gdb_support.o: gdb/gdb_support.c
+	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 -g $(INCLUDES) -ffunction-sections -fdata-sections -c $(CFLAGS) $<
+
 
 install: $($(CPU)_INSTALL)
 	${mkinstalldirs} ${DESTDIR}${tooldir}/lib${MULTISUBDIR} ${DESTDIR}${tooldir}/include/rosco_m68k
 	for c in $(CRT0); do \
+	  $(INSTALL_DATA) $$c $(DESTDIR)$(tooldir)/lib${MULTISUBDIR}/$$c ; \
+	done; 
+	for c in $(GCRT0); do \
 	  $(INSTALL_DATA) $$c $(DESTDIR)$(tooldir)/lib${MULTISUBDIR}/$$c ; \
 	done; 
 	for c in $(SCRIPTS); do \
@@ -128,6 +160,9 @@ install: $($(CPU)_INSTALL)
 	done;
 	@for bsp in ${BSP}; do\
 	 $(INSTALL_PROGRAM) $${bsp} $(DESTDIR)$(tooldir)/lib${MULTISUBDIR}; \
+	done
+	@for bspg in ${GBSP}; do\
+	 $(INSTALL_PROGRAM) $${bspg} $(DESTDIR)$(tooldir)/lib${MULTISUBDIR}; \
 	done
 	for c in $(PLAF_INCLUDES); do \
 	  $(INSTALL_DATA) $(srcdir)/include/$$c $(DESTDIR)$(tooldir)/include/rosco_m68k/$$c ; \
