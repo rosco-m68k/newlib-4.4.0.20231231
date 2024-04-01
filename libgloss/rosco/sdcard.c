@@ -30,12 +30,8 @@ static int FAT_media_read(uint32_t sector, uint8_t *buffer, uint32_t sector_coun
 }
 
 static int FAT_media_write(uint32_t sector, uint8_t *buffer, uint32_t sector_count) {
-#ifdef __WARNING__WILL__CORRUPT__FILESYSTEM__
     // TODO Hack - only supporting part 0 for now...
     return Part_write(&part, 0, buffer, sector, sector_count);
-#else
-    return 0;
-#endif
 }
 
 static void __sd_fat_shutdown() {

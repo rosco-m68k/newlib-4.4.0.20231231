@@ -88,7 +88,6 @@ ${GCRT0}: $(srcdir)/crt0.asm
 
 ${BSP}: $(OBJS)
 	${AR} ${ARFLAGS} $@ $(OBJS)
-	${STRIP} --strip-unneeded $@
 	${RANLIB} $@
 
 ${GBSP}: $(GOBJS)

@@ -60,10 +60,6 @@ extern void *_end;
 
 
 noreturn void _exit(int) {
-    if (fat_initialized) {
-        fl_shutdown();
-    }
-
     __asm__ __volatile__ (
         "moveal 0x490.l, %a0\n\t"
         "jmp %a0@\n\t"
@@ -168,8 +164,7 @@ int _lseek(int file, int ptr, int dir) {
     case STDERR_FILENO:
         return 0;
     default:
-        errno = EBADF;
-        return -1;
+        return _sd_lseek(file, ptr, dir);
     }
 }
 
