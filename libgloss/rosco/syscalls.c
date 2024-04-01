@@ -34,6 +34,17 @@ extern int errno;
 #include "sdfat.h"
 #include "fat_filelib.h"
 
+#define SD_0_DEV            128
+
+#define STDIN_FILENAME      "stdin"
+#define STDOUT_FILENAME     "stdout"
+#define STDERR_FILENAME     "stderr"
+
+// std[in|out|err] are all on device 0 (default)
+#define STDIN_DEVICE        0
+#define STDOUT_DEVICE       0
+#define STDERR_DEVICE       0
+
 char *__env[1] = { 0 };
 char **environ = __env;
 
@@ -100,6 +111,38 @@ int _fork() {
     return -1;
 }
 
+static int _sd_fstat(int file, struct stat *st) {
+    if (file < REAL_FILE_OFS) {
+        errno = EBADF;
+        return -1;
+    }
+
+    file -= REAL_FILE_OFS;
+
+    if (files_bmp & (1 << file) == 0) {
+        errno = EBADF;
+        return -1;
+    }
+
+    FL_FILE *f = (FL_FILE*)files[file];
+
+    st->st_uid = 0;
+    st->st_gid = 0;
+
+    st->st_dev = SD_0_DEV;
+    st->st_ino = f->startcluster;
+    st->st_mode = S_IFREG;
+    st->st_nlink = 0;
+    st->st_uid = 0;
+    st->st_gid = 0;
+    st->st_rdev = 0;
+    st->st_size = f->filelength;
+    st->st_blksize = 512;
+    st->st_blocks = f->filelength / 512;
+
+    return 0;
+}
+
 int _fstat(int file, struct stat *st) {
     switch (file) {
     case STDIN_FILENO:
@@ -108,8 +151,7 @@ int _fstat(int file, struct stat *st) {
         st->st_mode = S_IFCHR;
         return 0;
     default:
-        errno = EBADF;
-        return -1;
+        return _sd_fstat(file, st);
     }
 }
 
@@ -310,10 +352,36 @@ caddr_t _sbrk(int incr) {
     return prev;
 }
 
+static char filename_buffer[FATFS_MAX_LONG_FILENAME * 2 + 1];
+
+int _sd_stat(const char *file, struct stat *st) {
+    int fd = _sd_open(file, O_RDONLY);
+
+    if (fd != -1) {
+        int result = _sd_fstat(fd, st);
+        _sd_close(fd);
+        return result;
+    } else {
+        return -1;
+    }
+}
+
 int _stat(const char *file, struct stat *st) {
-    // TODO this should _probably_ be consistent with lstat!
-    errno = ENOENT;
-    return -1;
+    if (strncmp(SD_FN_PREFIX, file, strlen(SD_FN_PREFIX))) {
+        return _sd_stat(file, st);
+    } else if (strncmp(file, STDIN_FILENAME, strlen(STDIN_FILENAME))) {
+        st->st_dev = STDIN_DEVICE;
+        st->st_mode = S_IFCHR;
+    } else if (strncmp(file, STDOUT_FILENAME, strlen(STDOUT_FILENAME))) {
+        st->st_dev = STDOUT_DEVICE;
+        st->st_mode = S_IFCHR;
+    } else if (strncmp(file, STDERR_FILENAME, strlen(STDERR_FILENAME))) {
+        st->st_dev = STDERR_DEVICE;
+        st->st_mode = S_IFCHR;
+    } else {
+        errno = EBADF;
+        return -1;
+    }
 }
 
 clock_t _times(struct tms *buf) {
