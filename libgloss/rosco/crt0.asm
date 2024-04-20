@@ -75,7 +75,7 @@ _enter::                                ; entrypoint at copied run addr location
     jsr     atexit
     endif
 
-    move.l  0,(A7)                      ; Stack 0 argc
+    move.l  #0,(A7)                     ; Stack 0 argc
     move.l  #NULL_ARRAY,-(A7)           ; Stack empty argv
     lea.l   main,A0
     jsr     (A0)                        ; Fly user program, Fly!

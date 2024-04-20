@@ -45,8 +45,9 @@ extern int errno;
 #define STDOUT_DEVICE       0
 #define STDERR_DEVICE       0
 
-char *__env[1] = { 0 };
-char **environ = __env;
+// Not needed, defined in libc/stdlib/environ.c...
+// char *__env[1] = { 0 };
+// char **environ = __env;
 
 static unsigned char *heap;
 static SystemDataBlock *sdb = (SystemDataBlock*)&_SDB_MAGIC;
@@ -195,7 +196,7 @@ static int _sd_lseek(int file, int ptr, int dir) {
 
     void *f = files[file];
 
-    return fl_fseek(f, ptr, dir);
+    return fl_lseek(f, ptr, dir);
 }
 
 

@@ -1084,9 +1084,9 @@ int fl_fread(void * buffer, int size, int length, void *f )
     return bytesRead;
 }
 //-----------------------------------------------------------------------------
-// fl_fseek: Seek to a specific place in the file
+// fl_lseek: Seek to a specific place in the file, return offset from start
 //-----------------------------------------------------------------------------
-int fl_fseek( void *f, long offset, int origin )
+int fl_lseek( void *f, long offset, int origin )
 {
     FL_FILE *file = (FL_FILE *)f;
     int res = -1;
@@ -1094,11 +1094,20 @@ int fl_fseek( void *f, long offset, int origin )
     // If first call to library, initialise
     CHECK_FL_INIT();
 
-    if (!file)
+    if (!file) {
+        errno = EPIPE;
         return -1;
+    }
 
-    if (origin == SEEK_END && offset != 0)
+    if (origin == SEEK_END && offset != 0) {
+        errno = EINVAL;
         return -1;
+    }
+
+    if (origin == SEEK_SET && offset < 0) {
+        errno = EINVAL;
+        return -1;
+    }
 
     FL_LOCK(&_fs);
 
@@ -1113,7 +1122,7 @@ int fl_fseek( void *f, long offset, int origin )
         if (file->bytenum > file->filelength)
             file->bytenum = file->filelength;
 
-        res = 0;
+        res = file->bytenum;
     }
     else if (origin == SEEK_CUR)
     {
@@ -1138,12 +1147,12 @@ int fl_fseek( void *f, long offset, int origin )
                 file->bytenum-= offset;
         }
 
-        res = 0;
+        res = file->bytenum;
     }
     else if (origin == SEEK_END)
     {
         file->bytenum = file->filelength;
-        res = 0;
+        res = file->bytenum;
     }
     else
         res = -1;
@@ -1170,17 +1179,6 @@ int fl_fgetpos(void *f , uint32 * position)
     FL_UNLOCK(&_fs);
 
     return 0;
-}
-//-----------------------------------------------------------------------------
-// fl_ftell: Get the current file position
-//-----------------------------------------------------------------------------
-long fl_ftell(void *f)
-{
-    uint32 pos = 0;
-
-    fl_fgetpos(f, &pos);
-
-    return (long)pos;
 }
 //-----------------------------------------------------------------------------
 // fl_feof: Is the file pointer at the end of the stream?

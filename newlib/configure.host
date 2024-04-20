@@ -605,7 +605,7 @@ case "${host}" in
 	syscall_dir=syscalls
 	;;
   *-*-rosco*)
-	newlib_cflags="${newlib_cflags} -DNO_EXEC"
+	newlib_cflags="${newlib_cflags} -DNO_EXEC -DHAVE_BLKSIZE"
 	syscall_dir=syscalls
 	;;
 # RTEMS supplies its own versions of some routines:
