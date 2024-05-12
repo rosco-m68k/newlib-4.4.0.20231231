@@ -4,9 +4,9 @@
  *  ___ ___ ___ ___ ___       _____|  _| . | |_ 
  * |  _| . |_ -|  _| . |     |     | . | . | '_|
  * |_| |___|___|___|___|_____|_|_|_|___|___|_,_| 
- *                     |_____|       firmware v1                 
+ *                     |_____|           stdlibs               
  * ------------------------------------------------------------
- * Copyright (c)2019 Ross Bamford
+ * Copyright (c)2024 Ross Bamford
  * See top-level LICENSE.md for licence information.
  *
  * GDB support
