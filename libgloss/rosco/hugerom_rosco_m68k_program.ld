@@ -20,8 +20,7 @@ ENTRY(_start)
 
 MEMORY
 {
-  RAM       : org = 0x00000000,  l = 0x00100000
-  EXP_RAM   : org = 0x00100000,  l = 0x00D00000
+  RAM       : org = 0x00000000,  l = 0x00E00000
   ROM       : org = 0x00E00000,  l = 0x00100000
   IO_SPACE  : org = 0x00F00000,  l = 0x00100000
 }
