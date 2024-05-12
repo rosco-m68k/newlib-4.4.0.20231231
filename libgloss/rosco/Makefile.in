@@ -66,9 +66,11 @@ GBSP=	librosco_gdb.a
 
 SCRIPTS = hugerom_rosco_m68k_program.ld
 
-PLAF_INCLUDES= machine.h sdfat.h part.h part_mbr.h debug.h
+GLBL_INCLUDES	= sgtty.h
+PLAF_INCLUDES	= machine.h sdfat.h part.h part_mbr.h debug.h
+SYS_INCLUDES	= termios.h ioctl.h
 
-OBJS =  syscalls.o machine.o sdcard.o sdcard_asm.o part.o fat_access.o fat_cache.o fat_filelib.o fat_misc.o fat_string.o fat_table.o fat_write.o
+OBJS =  syscalls.o machine.o ioctl.o termio.o sdcard.o sdcard_asm.o part.o fat_access.o fat_cache.o fat_filelib.o fat_misc.o fat_string.o fat_table.o fat_write.o
 
 GOBJS=  buffer.o interrupt.o m68k_stub_asm.o m68k_stub.o gdb_support.o
 
@@ -104,6 +106,12 @@ sdcard_asm.o: $(srcdir)/sdcard_asm.asm
 	$(VASM) $(VASM_FLAGS) -o $@ $<
 
 sdcard.o: $(srcdir)/sdcard.c
+	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 -g $(INCLUDES) -ffunction-sections -fdata-sections -c $(CFLAGS) $<
+
+ioctl.o: $(srcdir)/ioctl.c
+	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 -g $(INCLUDES) -ffunction-sections -fdata-sections -c $(CFLAGS) $<
+
+termio.o: $(srcdir)/termio.c
 	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 -g $(INCLUDES) -ffunction-sections -fdata-sections -c $(CFLAGS) $<
 
 part.o: $(srcdir)/part.c
@@ -149,7 +157,7 @@ gdb_support.o: gdb/gdb_support.c
 
 
 install: $($(CPU)_INSTALL)
-	${mkinstalldirs} ${DESTDIR}${tooldir}/lib${MULTISUBDIR} ${DESTDIR}${tooldir}/include/rosco_m68k
+	${mkinstalldirs} ${DESTDIR}${tooldir}/lib${MULTISUBDIR} ${DESTDIR}${tooldir}/include/rosco_m68k ${DESTDIR}${tooldir}/include/sys
 	for c in $(CRT0); do \
 	  $(INSTALL_DATA) $$c $(DESTDIR)$(tooldir)/lib${MULTISUBDIR}/$$c ; \
 	done; 
@@ -165,8 +173,14 @@ install: $($(CPU)_INSTALL)
 	@for bspg in ${GBSP}; do\
 	 $(INSTALL_PROGRAM) $${bspg} $(DESTDIR)$(tooldir)/lib${MULTISUBDIR}; \
 	done
+	for c in $(GLBL_INCLUDES); do \
+	  $(INSTALL_DATA) $(srcdir)/include/$$c $(DESTDIR)$(tooldir)/include/$$c ; \
+	done;
 	for c in $(PLAF_INCLUDES); do \
 	  $(INSTALL_DATA) $(srcdir)/include/$$c $(DESTDIR)$(tooldir)/include/rosco_m68k/$$c ; \
+	done;
+	for c in $(SYS_INCLUDES); do \
+	  $(INSTALL_DATA) $(srcdir)/include/$$c $(DESTDIR)$(tooldir)/include/sys/$$c ; \
 	done;
 
 clean mostlyclean:
