@@ -42,7 +42,7 @@ _start::                                ; position-independent load addr
     move.l  (A0)+,(A1)+                 ; copy long word from source to dest
     dbra    D0,.INIT_LOOP               ; loop until end of postinit
 
-    jmp     _postreloc                  ; jump to copied postinit at run addr
+    jmp     POSTRELOC                   ; jump to copied postinit at run addr
 
     section .postreloc
 
