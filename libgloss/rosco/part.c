@@ -16,6 +16,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "ata.h"
 #include "sdfat.h"
 #include "part.h"
 #include "part_mbr.h"
@@ -30,6 +31,28 @@ PartInitStatus Part_init_SD(PartHandle *handle, SDCard *device) {
         if (buffer.signature[0] == 0x55 && buffer.signature[1] == 0xAA) {
             handle->device_type = PART_DEVICE_TYPE_SD;
             handle->SD_device = device;
+
+            for (int i = 0; i < 4; i++) {
+                handle->parts[i].status = buffer.parts[i].status;
+                handle->parts[i].type = buffer.parts[i].type;
+                handle->parts[i].lba_start = __builtin_bswap32(buffer.parts[i].lba_start);
+                handle->parts[i].sector_count = __builtin_bswap32(buffer.parts[i].sector_count);
+            }
+
+            return PART_INIT_OK;
+        } else {
+            return PART_INIT_BAD_SIGNATURE;
+        }
+    } else {
+        return PART_INIT_READ_FAILURE;
+    }
+}
+
+PartInitStatus Part_init_ATA(PartHandle *handle, ATADevice *device) {
+    if (ATA_read_sectors((uint8_t*)&buffer, 0, 1, device) == 1) {
+        if (buffer.signature[0] == 0x55 && buffer.signature[1] == 0xAA) {
+            handle->device_type = PART_DEVICE_TYPE_ATA;
+            handle->ata_device = device;
 
             for (int i = 0; i < 4; i++) {
                 handle->parts[i].status = buffer.parts[i].status;
@@ -75,6 +98,24 @@ static uint32_t Part_read_SD(PartHandle *handle, uint8_t part_num, uint8_t *buff
     }
 }
 
+static uint32_t Part_read_ATA(PartHandle *handle, uint8_t part_num, uint8_t *buffer, uint32_t start, uint32_t count) {
+    if (part_num > 3 || handle->parts[part_num].type == 0) {
+        return 0;
+    } else {
+        RuntimePart *part = &handle->parts[part_num];
+        if (start >= part->sector_count) {
+            // Out of range for partition
+            return 0;
+        } else {
+            if (count > part->sector_count - start) {
+                count = part->sector_count - start;
+            }
+
+            return ATA_read_sectors(buffer, part->lba_start + start, count, handle->ata_device);
+        }
+    }
+}
+
 static uint32_t Part_write_SD(PartHandle *handle, uint8_t part_num, uint8_t *buffer, uint32_t start, uint32_t count) {
     if (part_num > 3) {
         errno = EINVAL;
@@ -103,8 +144,28 @@ static uint32_t Part_write_SD(PartHandle *handle, uint8_t part_num, uint8_t *buf
     }
 }
 
+static uint32_t Part_write_ATA(PartHandle *handle, uint8_t part_num, uint8_t *buffer, uint32_t start, uint32_t count) {
+    if (part_num > 3 || handle->parts[part_num].type == 0) {
+        return 0;
+    } else {
+        RuntimePart *part = &handle->parts[part_num];
+        if (start >= part->sector_count) {
+            // Out of range for partition
+            return 0;
+        } else {
+            if (count > part->sector_count - start) {
+                count = part->sector_count - start;
+            }
+
+            return ATA_write_sectors(buffer, part->lba_start + start, count, handle->ata_device);
+        }
+    }
+}
+
 uint32_t Part_read(PartHandle *handle, uint8_t part_num, uint8_t *buffer, uint32_t start, uint32_t count) {
     switch (handle->device_type) {
+    case PART_DEVICE_TYPE_ATA:
+        return Part_read_ATA(handle, part_num, buffer, start, count);
     case PART_DEVICE_TYPE_SD:
         return Part_read_SD(handle, part_num, buffer, start, count);
     default:
@@ -114,6 +175,8 @@ uint32_t Part_read(PartHandle *handle, uint8_t part_num, uint8_t *buffer, uint32
 
 uint32_t Part_write(PartHandle *handle, uint8_t part_num, uint8_t *buffer, uint32_t start, uint32_t count) {
     switch (handle->device_type) {
+    case PART_DEVICE_TYPE_ATA:
+        return Part_write_ATA(handle, part_num, buffer, start, count);
     case PART_DEVICE_TYPE_SD:
         return Part_write_SD(handle, part_num, buffer, start, count);
     default:

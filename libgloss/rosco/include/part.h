@@ -19,6 +19,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "ata.h"
 #include "sdfat.h"
 #include "part_mbr.h"
 
@@ -38,16 +39,19 @@ typedef struct {
 
 typedef enum {
     PART_DEVICE_TYPE_SD,
+    PART_DEVICE_TYPE_ATA,
 } PartDeviceType;
 
 typedef struct {
     PartDeviceType device_type;
     union {
+        ATADevice *ata_device;
         SDCard    *SD_device;
     };
     RuntimePart parts[4];
 } PartHandle;
 
+PartInitStatus Part_init_ATA(PartHandle *handle, ATADevice *device);
 PartInitStatus Part_init_SD(PartHandle *handle, SDCard *device);
 uint32_t Part_read(PartHandle *handle, uint8_t part_num, uint8_t *buffer, uint32_t start, uint32_t count);
 uint32_t Part_write(PartHandle *handle, uint8_t part_num, uint8_t *buffer, uint32_t start, uint32_t count);

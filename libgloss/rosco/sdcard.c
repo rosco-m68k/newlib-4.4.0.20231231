@@ -41,6 +41,10 @@ static void __sd_fat_shutdown() {
 }
 
 bool SD_FAT_initialize() {
+    if (!SD_check_support()) {
+        return false;
+    }
+    
     if (SD_initialize(&sdcard) != SD_INIT_OK) {
         return false;
     }

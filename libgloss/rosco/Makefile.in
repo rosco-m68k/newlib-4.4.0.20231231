@@ -66,9 +66,9 @@ GBSP=	librosco_gdb.a
 
 SCRIPTS = hugerom_rosco_m68k_program.ld
 
-PLAF_INCLUDES= machine.h sdfat.h part.h part_mbr.h debug.h
+PLAF_INCLUDES= machine.h sdfat.h ata.h part.h part_mbr.h debug.h
 
-OBJS =  syscalls.o machine.o sdcard.o sdcard_asm.o part.o fat_access.o fat_cache.o fat_filelib.o fat_misc.o fat_string.o fat_table.o fat_write.o
+OBJS =  syscalls.o machine.o sdcard.o ata_asm.o sdcard_asm.o part.o fat_access.o fat_cache.o fat_filelib.o fat_misc.o fat_string.o fat_table.o fat_write.o
 
 GOBJS=  buffer.o interrupt.o m68k_stub_asm.o m68k_stub.o gdb_support.o
 
@@ -105,6 +105,9 @@ sdcard_asm.o: $(srcdir)/sdcard_asm.asm
 
 sdcard.o: $(srcdir)/sdcard.c
 	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 -g $(INCLUDES) -ffunction-sections -fdata-sections -c $(CFLAGS) $<
+
+ata_asm.o: $(srcdir)/ata_asm.asm
+	$(VASM) $(VASM_FLAGS) -o $@ $<
 
 part.o: $(srcdir)/part.c
 	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 -g $(INCLUDES) -ffunction-sections -fdata-sections -c $(CFLAGS) $<
