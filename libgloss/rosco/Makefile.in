@@ -60,17 +60,22 @@ OBJCOPY = `if [ -f ${objroot}/../binutils/objcopy ] ; \
 	then echo ${objroot}/../binutils/objcopy ; \
 	else t='$(program_transform_name)'; echo objcopy | sed -e $$t ; fi`
 
-BSP=	librosco.a
+BSP=	librosco.a 
 
 GBSP=	librosco_gdb.a
+
+XOSERA= libxosera_m68k.a
 
 SCRIPTS = hugerom_rosco_m68k_program.ld
 
 PLAF_INCLUDES= machine.h sdfat.h ata.h part.h part_mbr.h debug.h
+XOSERA_INCLUDES= xosera_m68k_api.h xosera_m68k_defs.h xosera_m68k_defs.inc
 
 OBJS =  syscalls.o machine.o sdcard.o ata_asm.o sdcard_asm.o part.o fat_access.o fat_cache.o fat_filelib.o fat_misc.o fat_string.o fat_table.o fat_write.o
 
 GOBJS=  buffer.o interrupt.o m68k_stub_asm.o m68k_stub.o gdb_support.o
+
+XOBJS=  xosera_m68k_api.o
 
 CRT0 = crt0.o
 GCRT0= gcrt0.o
@@ -78,7 +83,7 @@ GCRT0= gcrt0.o
 #### Host specific Makefile fragment comes in here.
 @host_makefile_frag@
 
-all: $(CRT0) $(GCRT0) $(BSP) $(GBSP)
+all: $(CRT0) $(GCRT0) $(BSP) $(GBSP) $(XOSERA)
 
 ${CRT0}: $(srcdir)/crt0.asm
 	$(VASM) $(VASM_FLAGS) -o $@ $<
@@ -92,6 +97,10 @@ ${BSP}: $(OBJS)
 
 ${GBSP}: $(GOBJS)
 	${AR} ${ARFLAGS} $@ $(GOBJS)
+	${RANLIB} $@
+
+${XOSERA}: $(XOBJS)
+	${AR} ${ARFLAGS} $@ $(XOBJS)
 	${RANLIB} $@
 
 syscalls.o: $(srcdir)/syscalls.c
@@ -133,6 +142,9 @@ fat_table.o: $(srcdir)/fat_io_lib/fat_table.c
 fat_write.o: $(srcdir)/fat_io_lib/fat_write.c
 	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 -g $(INCLUDES) -ffunction-sections -fdata-sections -c $(CFLAGS) $<
 
+xosera_m68k_api.o: $(srcdir)/xosera/xosera_m68k_api/xosera_m68k_api.c
+	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 -g $(INCLUDES) -ffunction-sections -fdata-sections -c $(CFLAGS) $<
+
 #### GDB support stuff
 
 buffer.o: gdb/buffer.asm
@@ -168,8 +180,14 @@ install: $($(CPU)_INSTALL)
 	@for bspg in ${GBSP}; do\
 	 $(INSTALL_PROGRAM) $${bspg} $(DESTDIR)$(tooldir)/lib${MULTISUBDIR}; \
 	done
+	@for xosera in ${XOSERA}; do\
+	 $(INSTALL_PROGRAM) $${xosera} $(DESTDIR)$(tooldir)/lib${MULTISUBDIR}; \
+	done
 	for c in $(PLAF_INCLUDES); do \
 	  $(INSTALL_DATA) $(srcdir)/include/$$c $(DESTDIR)$(tooldir)/include/rosco_m68k/$$c ; \
+	done;
+	for c in $(XOSERA_INCLUDES); do \
+	  $(INSTALL_DATA) $(srcdir)/xosera/xosera_m68k_api/$$c $(DESTDIR)$(tooldir)/include/rosco_m68k/$$c ; \
 	done;
 
 clean mostlyclean:
