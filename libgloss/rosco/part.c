@@ -81,6 +81,7 @@ static uint32_t Part_read_SD(PartHandle *handle, uint8_t part_num, uint8_t *buff
         RuntimePart *part = &handle->parts[part_num];
         if (start >= part->sector_count) {
             // Out of range for partition
+            errno = EINVAL;
             return 0;
         } else {
             if (count > part->sector_count - start) {
@@ -100,11 +101,13 @@ static uint32_t Part_read_SD(PartHandle *handle, uint8_t part_num, uint8_t *buff
 
 static uint32_t Part_read_ATA(PartHandle *handle, uint8_t part_num, uint8_t *buffer, uint32_t start, uint32_t count) {
     if (part_num > 3 || handle->parts[part_num].type == 0) {
+        errno = EINVAL;
         return 0;
     } else {
         RuntimePart *part = &handle->parts[part_num];
         if (start >= part->sector_count) {
             // Out of range for partition
+            errno = EINVAL;
             return 0;
         } else {
             if (count > part->sector_count - start) {
@@ -127,6 +130,7 @@ static uint32_t Part_write_SD(PartHandle *handle, uint8_t part_num, uint8_t *buf
         RuntimePart *part = &handle->parts[part_num];
         if (start >= part->sector_count) {
             // Out of range for partition
+            errno = EINVAL;
             return 0;
         } else {
             if (count > part->sector_count - start) {
@@ -146,11 +150,13 @@ static uint32_t Part_write_SD(PartHandle *handle, uint8_t part_num, uint8_t *buf
 
 static uint32_t Part_write_ATA(PartHandle *handle, uint8_t part_num, uint8_t *buffer, uint32_t start, uint32_t count) {
     if (part_num > 3 || handle->parts[part_num].type == 0) {
+        errno = EINVAL;
         return 0;
     } else {
         RuntimePart *part = &handle->parts[part_num];
         if (start >= part->sector_count) {
             // Out of range for partition
+            errno = EINVAL;
             return 0;
         } else {
             if (count > part->sector_count - start) {
@@ -169,6 +175,7 @@ uint32_t Part_read(PartHandle *handle, uint8_t part_num, uint8_t *buffer, uint32
     case PART_DEVICE_TYPE_SD:
         return Part_read_SD(handle, part_num, buffer, start, count);
     default:
+        errno = ERANGE;
         return 0;
     }
 }
@@ -180,6 +187,7 @@ uint32_t Part_write(PartHandle *handle, uint8_t part_num, uint8_t *buffer, uint3
     case PART_DEVICE_TYPE_SD:
         return Part_write_SD(handle, part_num, buffer, start, count);
     default:
+        errno = ERANGE;
         return 0;
     }
 }
