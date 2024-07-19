@@ -210,11 +210,8 @@ typedef volatile xmreg_t * const xosera_ptr_t;
 // load the pointer once (using more efficient immediate addressing mode) and keep it loaded in an address register.)
 
 // void xv_prep() - declare and load xosera_ptr (tries to use local/register for faster/smaller code vs global)
-#ifdef XOSERA_STATIC
-#define xv_prep() volatile xmreg_t * const xosera_ptr = ((volatile xmreg_t *)XM_BASEADDR)
-#else
-#define xv_prep(baseaddr) volatile xmreg_t * const xosera_ptr = ((volatile xmreg_t *)(baseaddr))
-#endif
+#define xv_prep() xv_prep_at(XM_BASEADDR)
+#define xv_prep_at(baseaddr) volatile xmreg_t * const xosera_ptr = ((volatile xmreg_t *)(baseaddr))
 
 // void xm_setbh(xmreg_name, high_byte) - set XM_<xmreg_name> bits [15:8] (high/even byte) to high_byte
 #define xm_setbh(xmreg_name, high_byte) (xosera_ptr[(XM_##xmreg_name) >> 2].b.h = (high_byte))

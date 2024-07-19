@@ -75,6 +75,10 @@
 #else
 #define XM_BASEADDR 0xf80061        // rosco_m68k Xosera register base address (lower byte [15:8] of 16-bit bus)
 #endif
+#else
+// TODO should probably make this resilient to being run on old ROM versions that don't have the address
+#define SDB_XOSERABASE      0x410
+#define XM_BASEADDR         ((*((volatile uint32_t*)SDB_XOSERABASE)))
 #endif
 
 #define XM_SYS_CTRL 0x00        // (R /W+) [15:8] status bits, write setup PIXEL_X/Y & options, [7:0] write masking

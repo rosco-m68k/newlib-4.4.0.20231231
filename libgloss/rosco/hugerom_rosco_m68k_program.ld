@@ -30,7 +30,7 @@ MEMORY
 PROVIDE(_STACK_SIZE     = 0x00004000);  /* 16KB default stack size      */
 
 /* firmware absolute addresses (generally not useful to override)  */
-PROVIDE(_relocIAL_STACK  = 0x00000000);  /* firmware stack top (mem top) */
+PROVIDE(_INITIAL_STACK  = 0x00000000);  /* firmware stack top (mem top) */
 PROVIDE(_WARM_BOOT      = 0x00000004);  /* firmware warm boot address   */
 
 PROVIDE(_MFP_VECTORS    = 0x00000100);  /* MFP interrupt vector base    */
@@ -41,10 +41,7 @@ PROVIDE(_SDB_MAGIC      = 0x00000400);  /* SDB magic number             */
 PROVIDE(_SDB_STATUS     = 0x00000404);  /* SDB status code              */
 PROVIDE(_SDB_RSRVD_408  = 0x00000408);  /* SDB reserved                 */
 PROVIDE(_TIMER_100HZ    = 0x0000040C);  /* 100Hz timer counter          */
-PROVIDE(_EASY68K_ECHOON = 0x00000410);  /* Easy68k 'echo on' flag       */
-PROVIDE(_EASY68K_PROMPT = 0x00000411);  /* Easy68k 'prompt on' flag     */
-PROVIDE(_EASY68K_SHOWLF = 0x00000412);  /* Easy68k 'LF display' flag    */
-PROVIDE(_SDB_RSRVD_413  = 0x00000413);  /* SDB reserved                 */
+PROVIDE(_SDB_XOSERABASE = 0x00000410);  /* Xosera base address          */
 PROVIDE(_SDB_MEM_SIZE   = 0x00000414);  /* contiguous memory size       */
 PROVIDE(_SDB_UART_BASE  = 0x00000418);  /* UART base address            */
 PROVIDE(_SDB_CPU_INFO   = 0x0000041C);  /* CPU Info (model and speed)   */
@@ -63,11 +60,11 @@ PROVIDE(_EFP_MOVEXY     = 0x0000043C);  /* Set cursor position (opt.)   */
 PROVIDE(_EFP_SETCURSOR  = 0x00000440);  /* Enable/disable cursor (opt.) */
 PROVIDE(_EFP_CHECKCHAR  = 0x00000444);  /* Check char ready from UART   */
 PROVIDE(_EFP_PROGLOADER = 0x00000448);  /* relocial program loader       */
-PROVIDE(_EFP_SD_reloc    = 0x0000044C);  /* SD Card reloc                 */
+PROVIDE(_EFP_SD_INIT    = 0x0000044C);  /* SD Card reloc                 */
 PROVIDE(_EFP_SD_READ    = 0x00000450);  /* SD Card read                 */
 PROVIDE(_EFP_SD_WRITE   = 0x00000454);  /* SD Card write                */
 PROVIDE(_EFP_SD_REG     = 0x00000458);  /* SD Card register read        */
-PROVIDE(_EFP_SPI_reloc   = 0x0000045C);  /* SPI reloc                     */
+PROVIDE(_EFP_SPI_INIT   = 0x0000045C);  /* SPI reloc                     */
 PROVIDE(_EFP_SPI_CS_A   = 0x00000460);  /* SPI CS assert                */
 PROVIDE(_EFP_SPI_CS_D   = 0x00000464);  /* SPI CS deassert              */
 PROVIDE(_EFP_SPI_XFER_B = 0x00000468);  /* SPI transfer byte            */
@@ -76,7 +73,7 @@ PROVIDE(_EFP_SPI_RECV_B = 0x00000470);  /* SPI recv byte                */
 PROVIDE(_EFP_SPI_RECV_M = 0x00000474);  /* SPI recv multiple            */
 PROVIDE(_EFP_SPI_SEND_B = 0x00000478);  /* SPI send byte                */
 PROVIDE(_EFP_SPI_SEND_M = 0x0000047C);  /* SPI send multiple            */
-PROVIDE(_EFP_ATA_reloc   = 0x00000480);  /* ATA reloc                     */
+PROVIDE(_EFP_ATA_INIT   = 0x00000480);  /* ATA reloc                     */
 PROVIDE(_EFP_ATA_READ   = 0x00000484);  /* ATA read                     */
 PROVIDE(_EFP_ATA_WRITE  = 0x00000488);  /* ATA write                    */
 PROVIDE(_EFP_ATA_IDENT  = 0x0000048C);  /* ATA identify                 */

@@ -217,9 +217,7 @@ extern void           (*_MFP_VECTORS[16])(void);  // MFP interrupt vectors
 extern uint32_t       _SDB_MAGIC;           // SDB magic number
 extern uint32_t       _SDB_STATUS;          // SDB status code
 extern volatile uint32_t _TIMER_100HZ;      // 100Hz timer counter
-extern uint8_t        _EASY68K_ECHOON;      // Easy68k 'echo on' flag
-extern uint8_t        _EASY68K_PROMPT;      // Easy68k 'prompt on' flag 
-extern uint8_t        _EASY68K_SHOWLF;      // Easy68k 'LF display' flag
+extern uint32_t       _SDB_XOSERABASE;      // Xosera base address
 extern uint32_t       _SDB_MEM_SIZE;        // contiguous memory size
 extern uint32_t       _SDB_UART_BASE;       // Default UART base address
 extern uint32_t       _SDB_CPU_INFO;        // CPU info (high 3 bits = model, rest of bits = speed).
