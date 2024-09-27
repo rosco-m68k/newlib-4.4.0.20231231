@@ -25,7 +25,7 @@
 ; GCC global constructors/destructors (with attributes and 
 ; __cxa_atexit) are supported here, too.
 ;------------------------------------------------------------
-    include "rosco_m68k_public.asm"
+    include "rosco_m68k_public.inc"
 
     section .reloc
 

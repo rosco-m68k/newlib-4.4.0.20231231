@@ -189,6 +189,7 @@ install: $($(CPU)_INSTALL)
 	for c in $(XOSERA_INCLUDES); do \
 	  $(INSTALL_DATA) $(srcdir)/xosera/xosera_m68k_api/$$c $(DESTDIR)$(tooldir)/include/rosco_m68k/$$c ; \
 	done;
+	$(INSTALL_DATA) $(srcdir)/rosco_m68k_public.inc $(DESTDIR)$(tooldir)/include/rosco_m68k/rosco_m68k_public.inc
 
 clean mostlyclean:
 	rm -f *.o *.a

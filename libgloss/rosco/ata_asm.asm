@@ -11,7 +11,7 @@
 ; Stubs for calling SD functions in the EFP from C,
 ; using the BBSD prototypes from stage 1.
 ;------------------------------------------------------------
-    include "rosco_m68k_public.asm"
+    include "rosco_m68k_public.inc"
 
 ATA_check_support::
     move.l  #15,D0
