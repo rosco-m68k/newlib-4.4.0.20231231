@@ -139,7 +139,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <setjmp.h>
-#include <machine.h>
+#include <rosco_m68k/machine.h>
 
 /************************************************************************
  *

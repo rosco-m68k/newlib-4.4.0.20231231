@@ -17,8 +17,8 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "sdfat.h"
-#include "part.h"
+#include "rosco_m68k/sdfat.h"
+#include "rosco_m68k/part.h"
 
 static SDCard sdcard;
 static PartHandle part;

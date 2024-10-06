@@ -29,7 +29,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <machine.h>
+#include <rosco_m68k/machine.h>
 
 #include "xosera_m68k_api.h"
 

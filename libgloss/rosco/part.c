@@ -16,10 +16,10 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "ata.h"
-#include "sdfat.h"
-#include "part.h"
-#include "part_mbr.h"
+#include "rosco_m68k/ata.h"
+#include "rosco_m68k/sdfat.h"
+#include "rosco_m68k/part.h"
+#include "rosco_m68k/part_mbr.h"
 #include <errno.h>
 #undef errno
 extern int errno;

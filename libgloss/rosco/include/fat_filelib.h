@@ -1,3 +1,7 @@
+/*
+ * 
+ * NOT PUBLIC API!
+*/
 #ifndef __FAT_FILELIB_H__
 #define __FAT_FILELIB_H__
 

@@ -15,7 +15,7 @@
 
 #include <stdio.h>
 #include <stdbool.h>
-#include <machine.h>
+#include <rosco_m68k/machine.h>
 #include <buffered_uart.h>
 
 typedef void (*ExceptionHook)(int);

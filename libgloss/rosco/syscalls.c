@@ -29,9 +29,9 @@
 #undef errno
 extern int errno;
 
-#include "machine.h"
+#include "rosco_m68k/machine.h"
 #include "vfs.h"
-#include "sdfat.h"
+#include "rosco_m68k/sdfat.h"
 #include "fat_filelib.h"
 
 #define SD_0_DEV            128
@@ -44,6 +44,8 @@ extern int errno;
 #define STDIN_DEVICE        0
 #define STDOUT_DEVICE       0
 #define STDERR_DEVICE       0
+
+#define EXTRACT_SD_NAME(name)     ((name + (strlen(SD_FN_PREFIX) - 1)))
 
 // Not needed, defined in libc/stdlib/environ.c...
 // char *__env[1] = { 0 };
@@ -233,7 +235,7 @@ int _sd_open(const char *name, int flags) {
         return -1;
     }
 
-    void *file = fl_fopen(name + (strlen(SD_FN_PREFIX) - 1), flags);
+    void *file = fl_fopen(EXTRACT_SD_NAME(name), flags);
 
     if (!file) {
         // fl_fopen should have set errno...
@@ -247,15 +249,15 @@ int _sd_open(const char *name, int flags) {
 }
 
 int _open(const char *name, int flags, ...) {
-    if (strncmp(SD_FN_PREFIX, name, strlen(SD_FN_PREFIX))) {
+    if (strncmp(SD_FN_PREFIX, name, strlen(SD_FN_PREFIX)) == 0) {
         return _sd_open(name, flags);
-    } else if (strncmp(STDIN_FN, name, strlen(STDIN_FN))) {
+    } else if (strncmp(STDIN_FN, name, strlen(STDIN_FN)) == 0) {
         // reopen stdin
         stdin_nonblock = flags & O_NONBLOCK;
         return STDIN_FILENO;
-    } else if (strncmp(STDOUT_FN, name, strlen(STDOUT_FN))) {
+    } else if (strncmp(STDOUT_FN, name, strlen(STDOUT_FN)) == 0) {
         return STDOUT_FILENO;
-    } else if (strncmp(STDERR_FN, name, strlen(STDERR_FN))) {
+    } else if (strncmp(STDERR_FN, name, strlen(STDERR_FN)) == 0) {
         return STDERR_FILENO;
     }
 
@@ -363,20 +365,40 @@ int _sd_stat(const char *file, struct stat *st) {
         _sd_close(fd);
         return result;
     } else {
-        return -1;
+        // try directory
+        FL_DIR dir;
+        if (!fl_opendir(EXTRACT_SD_NAME(file), &dir)) {
+            return -1;
+        }
+
+        st->st_uid = 0;
+        st->st_gid = 0;
+
+        st->st_dev = SD_0_DEV;
+        st->st_ino = dir.cluster;
+        st->st_mode = S_IFDIR;
+        st->st_nlink = 0;
+        st->st_uid = 0;
+        st->st_gid = 0;
+        st->st_rdev = 0;
+        st->st_size = 512;
+        st->st_blksize = 512;
+        st->st_blocks = 1;
+
+        return 0;
     }
 }
 
 int _stat(const char *file, struct stat *st) {
-    if (strncmp(SD_FN_PREFIX, file, strlen(SD_FN_PREFIX))) {
+    if (strncmp(SD_FN_PREFIX, file, strlen(SD_FN_PREFIX)) == 0) {
         return _sd_stat(file, st);
-    } else if (strncmp(file, STDIN_FILENAME, strlen(STDIN_FILENAME))) {
+    } else if (strncmp(file, STDIN_FILENAME, strlen(STDIN_FILENAME)) == 0) {
         st->st_dev = STDIN_DEVICE;
         st->st_mode = S_IFCHR;
-    } else if (strncmp(file, STDOUT_FILENAME, strlen(STDOUT_FILENAME))) {
+    } else if (strncmp(file, STDOUT_FILENAME, strlen(STDOUT_FILENAME)) == 0) {
         st->st_dev = STDOUT_DEVICE;
         st->st_mode = S_IFCHR;
-    } else if (strncmp(file, STDERR_FILENAME, strlen(STDERR_FILENAME))) {
+    } else if (strncmp(file, STDERR_FILENAME, strlen(STDERR_FILENAME)) == 0) {
         st->st_dev = STDERR_DEVICE;
         st->st_mode = S_IFCHR;
     } else {

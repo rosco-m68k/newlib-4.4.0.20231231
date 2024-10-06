@@ -10,6 +10,8 @@
  * See top-level LICENSE.md for licence information.
  *
  * Buffered (interrupt-driven) DUART support
+ * 
+ * NOT PUBLIC API!
  * ------------------------------------------------------------
  */
 
@@ -17,7 +19,7 @@
 #define __ROSCOM68K_LIBC_BUFFERED_UART_H__
 
 #include <stdint.h>
-#include <machine.h>
+#include <rosco_m68k/machine.h>
 
 typedef struct {
     uint16_t    r_ptr;

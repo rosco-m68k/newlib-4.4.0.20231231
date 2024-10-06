@@ -1,3 +1,7 @@
+/*
+ * 
+ * NOT PUBLIC API!
+*/
 #ifndef ___ROSCOM68K_LIBC_FAT_STRING_H__
 #define ___ROSCOM68K_LIBC_FAT_STRING_H__
 

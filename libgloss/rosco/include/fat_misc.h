@@ -1,3 +1,7 @@
+/*
+ * 
+ * NOT PUBLIC API!
+*/
 #ifndef  __ROSCOM68K_LIBC_FAT_MISC_H__
 #define  __ROSCOM68K_LIBC_FAT_MISC_H__
 

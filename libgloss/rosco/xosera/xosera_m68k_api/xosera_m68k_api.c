@@ -24,7 +24,7 @@
 
 // building XANSI in firmware
 #if !defined(XOSERA_API_MINIMAL)
-#include "../../include/machine.h"       // rosco_m68k I/O
+#include "../../include/rosco_m68k/machine.h"       // rosco_m68k I/O
 #include <stdlib.h>
 #include <string.h>
 #endif
