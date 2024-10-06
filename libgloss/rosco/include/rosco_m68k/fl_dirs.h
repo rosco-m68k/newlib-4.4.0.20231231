@@ -42,12 +42,12 @@ typedef struct fat_dir_ent
     uint16_t                create_time;
 } fat_dirent;
 
-FAT_DIR*            fat_opendir(const char* path, FAT_DIR *dir);
-int                 fat_readdir(FAT_DIR *dirls, fat_dirent *entry);
-int                 fat_closedir(FAT_DIR* dir);
+FAT_DIR*            fl_opendir(const char* path, FAT_DIR *dir);
+int                 fl_readdir(FAT_DIR *dirls, fat_dirent *entry);
+int                 fl_closedir(FAT_DIR* dir);
 
 // Extensions
-int                 fat_createdirectory(const char *path);
-int                 fat_is_dir(const char *path);
+int                 fl_createdirectory(const char *path);
+int                 fl_is_dir(const char *path);
 
 #endif
