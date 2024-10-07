@@ -18,6 +18,16 @@
 #ifndef __ROSCOM68K_LIBC_FL_DIRS_H__
 #define __ROSCOM68K_LIBC_FL_DIRS_H__
 
+#include <stdint.h>
+
+typedef struct fat_dir_list_status
+{
+    uint32_t                sector;
+    uint32_t                cluster;
+    uint8_t                 offset;
+} FAT_DIR;
+
+// Extensions
 int                 fl_createdirectory(const char *path);
 int                 fl_is_dir(const char *path);
 
