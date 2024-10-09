@@ -92,13 +92,16 @@ _bss_init:
     sub.l   #_bss_start,D0
     lsr.l   #2,D0
     move.l  #_bss_start,A0
+    move.l  D0,D1                       ; copy for outer loop
+    swap    D1                          ; swap for 64K chunk count
     bra.s   .loopstart
 
 .loop:
     clr.l   (A0)+
 
 .loopstart:
-    dbra    d0,.loop
+    dbra    D0,.loop                    ; inner loop
+    dbra    D1,.loop                    ; outer loop
     rts
 
     align  4
