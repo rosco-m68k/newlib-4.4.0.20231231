@@ -48,6 +48,8 @@ bool _start_debugger(void) {
         return false;
     }
 
+    uart_b.mask = 0x3ff;    // 1K ring buffer
+
     _duart_install_interrupt(&device, NULL, &uart_b);
 
     _set_debug_traps();
