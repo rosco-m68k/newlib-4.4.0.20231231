@@ -344,10 +344,21 @@ caddr_t _sbrk(int incr) {
     prev = heap;
     new = heap + incr;
 
-    if (((uint32_t)new) >= mcGetStackPointer()) {
-        // overflow
-        errno = ENOMEM;
-        return (caddr_t)-1;
+    uint32_t sp = mcGetStackPointer();
+
+    if (sp < &_end) {
+        // special case for "private stacks" (in .bss or whatever)
+        if (((uint32_t)new) >= 1048576) {//sdb->memsize) {
+            // overflow
+            errno = ENOMEM;
+            return (caddr_t)-1;
+        }
+    } else {
+        if (((uint32_t)new) >= sp) {
+            // overflow
+            errno = ENOMEM;
+            return (caddr_t)-1;
+        }
     }
 
     heap = new;
