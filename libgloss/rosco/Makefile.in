@@ -64,19 +64,19 @@ BSP=	librosco.a
 
 GBSP=	librosco_gdb.a
 
-XOSERA= libxosera_m68k.a
+XOSERA= libxosera.a
 
 SCRIPTS = hugerom_rosco_m68k_program.ld
 
 SYS_INCLUDES= dirent.h
 PLAF_INCLUDES= machine.h sdfat.h ata.h part.h part_mbr.h debug.h fl_dirs.h
-XOSERA_INCLUDES= xosera_m68k_api.h xosera_m68k_defs.h xosera_m68k_defs.inc
+XOSERA_INCLUDES= xosera.h xosera_defs.h xosera_defs.inc
 
 OBJS =  syscalls.o machine.o sdcard.o ata_asm.o sdcard_asm.o part.o fat_access.o fat_cache.o fat_filelib.o fat_misc.o fat_string.o fat_table.o fat_write.o dirent.o
 
 GOBJS=  buffer.o interrupt.o m68k_stub_asm.o m68k_stub.o gdb_support.o
 
-XOBJS=  xosera_m68k_api.o
+XOBJS=  xosera_api.o
 
 CRT0 = crt0.o
 GCRT0= gcrt0.o
@@ -146,7 +146,7 @@ fat_write.o: $(srcdir)/fat_io_lib/fat_write.c
 dirent.o: $(srcdir)/sys/dirent.c
 	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 -g $(INCLUDES) -ffunction-sections -fdata-sections -c $(CFLAGS) $<
 
-xosera_m68k_api.o: $(srcdir)/xosera/xosera_m68k_api/xosera_m68k_api.c
+xosera_api.o: $(srcdir)/xosera/xosera_m68k_api/xosera_api.c
 	$(CC) $(CFLAGS_FOR_TARGET) -I$(srcdir)/include -O2 -g $(INCLUDES) -ffunction-sections -fdata-sections -c $(CFLAGS) $<
 
 #### GDB support stuff

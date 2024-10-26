@@ -21,10 +21,10 @@
 
 // See: https://github.com/XarkLabs/Xosera/blob/master/REFERENCE.md
 
-#if !defined(XOSERA_M68K_DEFS_H)
-#define XOSERA_M68K_DEFS_H
+#if !defined(XOSERA_DEFS_H)
+#define XOSERA_DEFS_H
 
-#if !defined(__COPASM__)
+#if !defined(__COPASM__) && !defined(__ASSEMBLER__)
 #include <stdint.h>
 #define X_CASTU16 (uint16_t)
 #else
@@ -69,17 +69,10 @@
 #if defined(ROSCO_M68K)        // setup for rosco_m68k using Xosera board
 // NOTE: Main register numbers are multiplied by 4 for rosco_m68k, because of even byte 6800 8-bit addressing plus
 // 16-bit registers
-#ifdef XOSERA_STATIC
-#ifdef XOSERA_LEGACY
-#define XM_BASEADDR 0xf80060        // rosco_m68k Xosera register base address (upper byte [15:8] of 16-bit bus)
-#else
-#define XM_BASEADDR 0xf80061        // rosco_m68k Xosera register base address (lower byte [15:8] of 16-bit bus)
-#endif
-#else
-// TODO should probably make this resilient to being run on old ROM versions that don't have the address
-#define SDB_XOSERABASE      0x410
-#define XM_BASEADDR         ((*((volatile uint32_t*)SDB_XOSERABASE)))
-#endif
+
+// NOTE: Xosera register base address is NOT hardcoded on rosco_m68k, instead SDB_XOSERABASE is set by the firmware to
+// contain the base address (which can vary depending on board and configuration)
+#define XM_BASE_PTR 0x410        // contains Xosera base address (aka SDB_XOSERABASE, set by firmware)
 
 #define XM_SYS_CTRL 0x00        // (R /W+) [15:8] status bits, write setup PIXEL_X/Y & options, [7:0] write masking
 #define XM_INT_CTRL 0x04        // (R /W+) FPGA config, interrupt status/control
@@ -327,15 +320,19 @@
 #define POINTER_V_W          12            // pointer raw V position
 #define POINTER_V_F          0x0FFF        // pointer raw V position
 // XR_Px_GFX_CTRL constants
-#define GFX_1_BPP 0        // 1-bpp (2 colors + selected via fore/back color attribute byte)
-#define GFX_4_BPP 1        // 4-bpp (16 colors)
-#define GFX_8_BPP 2        // 8-bpp (256 colors)
-#define GFX_X_BPP 3        // (reserved)
-#define GFX_1X    0        // H/V repeat x1
-#define GFX_2X    1        // H/V repeat x2
-#define GFX_3X    2        // H/V repeat x3
-#define GFX_4X    3        // H/V repeat x4
-// XR_Px_HV_FSCALE constants    16:9   4:3
+#define GFX_VISIBLE   0        // playfield visible
+#define GFX_BLANKED   1        // playfield blanked
+#define GFX_1_BPP     0        // 1-bpp (2 colors selected via fore/back color attribute byte)
+#define GFX_4_BPP     1        // 4-bpp (16 colors)
+#define GFX_8_BPP     2        // 8-bpp (256 colors, bitmap mode only)
+#define GFX_1_BPP_EXT 3        // 1-bpp extended (2 color tilemap, 16x16 glyph w/2048 8x16 tiles)
+#define GFX_TILEMAP   0        // tilemap (bitmap disabled)
+#define GFX_BITMAP    1        // bitmap (bitmap enabled)
+#define GFX_1X        0        // H/V repeat x1
+#define GFX_2X        1        // H/V repeat x2
+#define GFX_3X        2        // H/V repeat x3
+#define GFX_4X        3        // H/V repeat x4
+// XR_Px_HV_FSCALE constants          16:9 / 4:3 screen-aspect
 #define HV_FSCALE_OFF  0x0        // H 848 / 640,  V 480
 #define HV_FSCALE_1OF2 0x1        // H 424 / 320,  V 240
 #define HV_FSCALE_1OF3 0x2        // H 565+/ 426+, V 320
@@ -456,13 +453,44 @@
 #define MODE_848x480_LEFTEDGE (MODE_848x480_TOTAL_H - MODE_848x480_H)        // offscreen hpos pixels
 #define AUDIO_PERIOD_HZ_848   33750000                                       // sample main clock in 848x480 video mode
 
+// Tilemap special bits
+#define TILEMAP_VREV   0x0400        // 4-bpp
+#define TILEMAP_HREV   0x0800        // 4-bpp
+#define TILEMAP_INVERT 0x8000        // 1-bpp-ext
+
+// Alpha blend mode values (COLOR_A colormap word value, upper 4-bits alpha)
+#define ALPHA_A_BLEND  0x0000
+#define ALPHA_A_DARKEN 0x4000
+#define ALPHA_A_ADD    0x8000
+#define ALPHA_A_OPAQUE 0xc000
+
+// MAKE_TILE_CTRL() constants for XR_Px_TILE_CTRL
+#define TILEMAP_IN_VRAM 0        // 2nd argument of MAKE_TILE_CTRL
+#define TILEMAP_IN_XMEM 1        // 2nd argument of MAKE_TILE_CTRL
+#define TILEDEF_IN_XMEM 0        // 3rd argument of MAKE_TILE_CTRL
+#define TILEDEF_IN_VRAM 1        // 3rd argument of MAKE_TILE_CTRL
+
+// MAKE_SYS_CTRL_PIX() constants for XM_SYS_CTRL
+#define PIX_SET_MASK 0        // 1st argument of MAKE_SYS_CTRL_PIX
+#define PIX_NO_MASK  1        // 1st argument of MAKE_SYS_CTRL_PIX
+#define PIX_4_BIT    0        // 2nd argument of MAKE_SYS_CTRL_PIX
+#define PIX_8_BIT    1        // 2nd argument of MAKE_SYS_CTRL_PIX
+
 // Macros to help create values for registers with multiple fields
 
 // uint16_t XB_(uint16_t val, rightmost_bit, bit_width) - encode bit-field (e.g., XB_(v,8,4) puts v in bits [11:8])
 #define XB_(val, rightmost_bit, bit_width) (((X_CASTU16(val)) & ((1 << (bit_width)) - 1)) << (rightmost_bit))
-// uint16_t XV_(uint16_t rval, rightmost_bit, bit_width) - decode bit-field (e.g., XV_(rv,8,4) extracts bits [11:8])
+// uint16_t XV_(uint16_t val, rightmost_bit, bit_width) - decode bit-field (e.g., XV_(rv,8,4) extracts bits [11:8])
 #define XV_(val, rightmost_bit, bit_width) (((X_CASTU16(val)) >> (rightmost_bit)) & ((1 << (bit_width)) - 1))
 
+// uint16_t XBF_(uint16_t val, BIT_FIELD_NAME) - encode bit-field (e.g., XBF_(v, GFX_CTRL_BPP) put v into field)
+#define XBF_(val, field_name) XB_(val, field_name##_B, field_name##_W)
+// uint16_t XVF_(uint16_t val, BIT_FIELD_NAME) - decode bit-field (e.g., XBF_(v, GFX_CTRL_BPP) get field from v)
+#define XVF_(val, field_name) XV_(val, field_name##_B, field_name##_W)
+
+// MAKE_SYS_CTRL_PIX(pix_wr_mask, pix_8bit) - make SYS_CTRL and trigger pixel address setup
+#define MAKE_SYS_CTRL_PIX(pix_wr_mask, pix_8bit)                                                                       \
+    (XBF_(pix_wr_mask, SYS_CTRL_PIX_NO_MASK) | XBF_(pix_8bit, SYS_CTRL_PIX_8B_MASK))
 // MAKE_INT_CTRL(e_bl, e_ti, e_vi, e_a3, e_a2, e_a1, e_a0, a_bl, a_ti, a_vi, a_a3, a_a2, a_a1, a_a0) - make INT_CTRL
 #define MAKE_INT_CTRL(e_bl, e_ti, e_vi, e_a3, e_a2, e_a1, e_a0, a_bl, a_ti, a_vi, a_a3, a_a2, a_a1, a_a0)              \
     (XB_(e_bl, INT_CTRL_BLIT_EN_B, INT_CTRL_BLIT_EN_W) | XB_(e_ti, INT_CTRL_TIMER_EN_B, INT_CTRL_TIMER_EN_W) |         \
@@ -489,11 +517,11 @@
     (XB_(colorbase, GFX_CTRL_COLORBASE_B, GFX_CTRL_COLORBASE_W) | XB_(blanked, GFX_CTRL_BLANK_B, GFX_CTRL_BLANK_W) |   \
      XB_(bitmap, GFX_CTRL_BITMAP_B, GFX_CTRL_BITMAP_W) | XB_(bpp, GFX_CTRL_BPP_B, GFX_CTRL_BPP_W) |                    \
      XB_(hrepeat, GFX_CTRL_H_REPEAT_B, GFX_CTRL_H_REPEAT_W) | XB_(vrepeat, GFX_CTRL_V_REPEAT_B, GFX_CTRL_V_REPEAT_W))
-// MAKE_TILE_CTRL(tile_addr, map_in_tilemem, tile_in_vram, tile_height)  - make TILE_CTRL reg value
-#define MAKE_TILE_CTRL(tile_addr, map_in_tilemem, tile_in_vram, tile_height)                                           \
-    (((tile_addr) & TILE_CTRL_TILEBASE_F) | XB_(map_in_tilemem, TILE_CTRL_DISP_TILEMEM_B, TILE_CTRL_DISP_TILEMEM_W) |  \
+// MAKE_TILE_CTRL(tile_addr, map_in_xmem, tile_in_vram, tile_height)  - make TILE_CTRL reg value
+#define MAKE_TILE_CTRL(tile_addr, map_in_xmem, tile_in_vram, tile_height)                                              \
+    (((tile_addr) & TILE_CTRL_TILEBASE_F) | XB_(map_in_xmem, TILE_CTRL_DISP_TILEMEM_B, TILE_CTRL_DISP_TILEMEM_W) |     \
      XB_(tile_in_vram, TILE_CTRL_TILE_VRAM_B, TILE_CTRL_TILE_VRAM_W) |                                                 \
-     XB_(((tile_height)-1), TILE_CTRL_TILE_H_B, TILE_CTRL_TILE_H_W))
+     XB_(((tile_height) - 1), TILE_CTRL_TILE_H_B, TILE_CTRL_TILE_H_W))
 // MAKE_HV_FSCALE(h_frac, v_frac) - make HV_FSCALE reg value
 #define MAKE_HV_FSCALE(h_frac, v_frac)                                                                                 \
     (XB_(h_frac, HV_FSCALE_H_FRAC_B, HV_FSCALE_H_FRAC_W) | XB_(v_frac, HV_FSCALE_V_FRAC_B, HV_FSCALE_V_FRAC_W))
@@ -553,4 +581,4 @@
 #define COP_END()                    (X_CASTU16 0x2800 | (X_CASTU16(COP_V_EOF) & 0x07FF))
 #endif        // !defined(__COPASM__)
 
-#endif        // !defined(XOSERA_M68K_DEFS_H)
+#endif        // !defined(XOSERA_DEFS_H)
