@@ -21,8 +21,9 @@
 
 ; See: https:;github.com/XarkLabs/Xosera/blob/master/REFERENCE.md
 
-XM_BASEADDR_OLD         equ     $f80060     ; Xosera rosco_m68k 68010 register base address (r1 board)
-XM_BASEADDR_NEW         equ     $f80061     ; Xosera rosco_m68k 68010 register base address (XoseRAM)
+; NOTE: Xosera register base address is NOT hardcoded on rosco_m68k, instead SDB_XOSERABASE is set by the firmware to
+; contain the base address (which can vary depending on board and configuration)
+XM_BASE_PTR             equ     $0410       ; contains Xosera base address (aka SDB_XOSERABASE, set by firmware)
 
 ; Xosera XR Memory Regions (size in 16-bit words)
 XR_CONFIG_REGS          equ     $0000       ; (R/W) $0000-$0007 8 config/ctrl registers
@@ -288,15 +289,19 @@ POINTER_V_B             equ     0           ; pointer raw V position
 POINTER_V_W             equ     12          ; pointer raw V position
 POINTER_V_F             equ     $0FFF       ; pointer raw V position
 ; XR_Px_GFX_CTRL constants
-GFX_1_BPP               equ     0           ; 1-bpp (2 colors + selected via fore/back color attribute byte)
+GFX_VISIBLE             equ     0           ; playfield visible
+GFX_BLANKED             equ     1           ; playfield blanked
+GFX_1_BPP               equ     0           ; 1-bpp (2 colors selected via fore/back color attribute byte)
 GFX_4_BPP               equ     1           ; 4-bpp (16 colors)
-GFX_8_BPP               equ     2           ; 8-bpp (256 colors)
-GFX_X_BPP               equ     3           ; (reserved)
+GFX_8_BPP               equ     2           ; 8-bpp (256 colors, bitmap mode only)
+GFX_1_BPP_EXT           equ     3           ; 1-bpp extended (2 color tilemap, 16x16 glyph w/2048 8x16 tiles)
+GFX_TILEMAP             equ     0           ; tilemap (bitmap disabled)
+GFX_BITMAP              equ     1           ; bitmap (bitmap enabled)
 GFX_1X                  equ     0           ; H/V repeat x1
 GFX_2X                  equ     1           ; H/V repeat x2
 GFX_3X                  equ     2           ; H/V repeat x3
 GFX_4X                  equ     3           ; H/V repeat x4
-; XR_Px_HV_FSCALE constants    16:9   4:3
+; XR_Px_HV_FSCALE constants                    16:9 / 4:3 screen-aspect
 HV_FSCALE_OFF           equ     $0          ; H 848 / 640,  V 480
 HV_FSCALE_1OF2          equ     $1          ; H 424 / 320,  V 240
 HV_FSCALE_1OF3          equ     $2          ; H 565+/ 426+, V 320
@@ -416,3 +421,14 @@ MODE_848x480_TOTAL_H    equ     1088                                    ; total 
 MODE_848x480_TOTAL_V    equ     517                                     ; total vpos height
 MODE_848x480_LEFTEDGE   equ     MODE_848x480_TOTAL_H-MODE_848x480_H     ; offscreen hpos pixels
 AUDIO_PERIOD_HZ_848     equ     33750000                                ; sample main clock in 848x480 video mode
+
+; Alpha blend mode values (COLOR_A colormap word value, upper 4-bits alpha)
+ALPHA_A_BLEND           equ     $0000
+ALPHA_A_DARKEN          equ     $4000
+ALPHA_A_ADD             equ     $8000
+ALPHA_A_OPAQUE          equ     $c000
+
+; Tilemap special bits
+TILEMAP_VREV            equ     $0400                                   ; 4-bpp
+TILEMAP_HREV            equ     $0800                                   ; 4-bpp
+TILEMAP_INVERT          equ     $0800                                   ; 1-bpp-ext
