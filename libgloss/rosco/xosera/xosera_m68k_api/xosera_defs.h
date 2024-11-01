@@ -70,9 +70,9 @@
 // NOTE: Main register numbers are multiplied by 4 for rosco_m68k, because of even byte 6800 8-bit addressing plus
 // 16-bit registers
 
-// NOTE: Xosera register base address is NOT hardcoded on rosco_m68k, instead SDB_XOSERABASE is set by the firmware to
+// NOTE: Xosera register base address is NOT hardcoded on rosco_m68k, instead VDB_XOSERABASE is set by the firmware to
 // contain the base address (which can vary depending on board and configuration)
-#define XM_BASE_PTR 0x410        // contains Xosera base address (aka SDB_XOSERABASE, set by firmware)
+#define XM_BASE_PTR 0x117c      // contains Xosera base address (aka VDB_XOSERABASE, set by firmware)
 
 #define XM_SYS_CTRL 0x00        // (R /W+) [15:8] status bits, write setup PIXEL_X/Y & options, [7:0] write masking
 #define XM_INT_CTRL 0x04        // (R /W+) FPGA config, interrupt status/control

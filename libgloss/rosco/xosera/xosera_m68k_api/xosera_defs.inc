@@ -21,9 +21,9 @@
 
 ; See: https:;github.com/XarkLabs/Xosera/blob/master/REFERENCE.md
 
-; NOTE: Xosera register base address is NOT hardcoded on rosco_m68k, instead SDB_XOSERABASE is set by the firmware to
+; NOTE: Xosera register base address is NOT hardcoded on rosco_m68k, instead VDB_XOSERABASE is set by the firmware to
 ; contain the base address (which can vary depending on board and configuration)
-XM_BASE_PTR             equ     $0410       ; contains Xosera base address (aka SDB_XOSERABASE, set by firmware)
+XM_BASE_PTR             equ     $117c       ; contains Xosera base address (aka VDB_XOSERABASE, set by firmware)
 
 ; Xosera XR Memory Regions (size in 16-bit words)
 XR_CONFIG_REGS          equ     $0000       ; (R/W) $0000-$0007 8 config/ctrl registers
