@@ -41,10 +41,27 @@ PROVIDE(_SDB_MAGIC      = 0x00000400);  /* SDB magic number             */
 PROVIDE(_SDB_STATUS     = 0x00000404);  /* SDB status code              */
 PROVIDE(_SDB_RSRVD_408  = 0x00000408);  /* SDB reserved                 */
 PROVIDE(_TIMER_100HZ    = 0x0000040C);  /* 100Hz timer counter          */
-PROVIDE(_SDB_XOSERABASE = 0x00000410);  /* Xosera base address          */
+PROVIDE(_SDB_RESERVED   = 0x00000410);  /* Reserved                     */
 PROVIDE(_SDB_MEM_SIZE   = 0x00000414);  /* contiguous memory size       */
 PROVIDE(_SDB_UART_BASE  = 0x00000418);  /* UART base address            */
 PROVIDE(_SDB_CPU_INFO   = 0x0000041C);  /* CPU Info (model and speed)   */
+
+/* video data block */
+PROVIDE(_VDB_MAGIC      = 0x00001140);  /* VDB magic number             */
+PROVIDE(_VDB_RESERVED1  = 0x00001144);  /* VDB reserved                 */
+PROVIDE(_VDB_RESERVED2  = 0x00001148);  /* VDB reserved                 */
+PROVIDE(_VDB_RESERVED3  = 0x00001150);  /* VDB reserved                 */
+PROVIDE(_VDB_RESERVED4  = 0x00001154);  /* VDB reserved                 */
+PROVIDE(_VDB_RESERVED5  = 0x00001158);  /* VDB reserved                 */
+PROVIDE(_VDB_RESERVED6  = 0x0000115C);  /* VDB reserved                 */
+PROVIDE(_VDB_RESERVED7  = 0x00001160);  /* VDB reserved                 */
+PROVIDE(_VDB_RESERVED8  = 0x00001164);  /* VDB reserved                 */
+PROVIDE(_VDB_RESERVED9  = 0x00001168);  /* VDB reserved                 */
+PROVIDE(_VDB_RESERVEDA  = 0x0000116C);  /* VDB reserved                 */
+PROVIDE(_VDB_RESERVEDB  = 0x00001170);  /* VDB reserved                 */
+PROVIDE(_VDB_RESERVEDC  = 0x00001174);  /* VDB reserved                 */
+PROVIDE(_VDB_RESERVEDE  = 0x00001178);  /* VDB reserved                 */
+PROVIDE(_VDB_XOSERABASE = 0x0000117C);  /* Xosera device base address   */
 
 /* NOTE: These need to be kept in sync with rosco_m68k_public.inc!      */
 PROVIDE(_EFP_TABLE      = 0x00000420);  /* Extension function ptr table */
@@ -59,12 +76,12 @@ PROVIDE(_EFP_CLRSCR     = 0x00000438);  /* Clear screen (optional)      */
 PROVIDE(_EFP_MOVEXY     = 0x0000043C);  /* Set cursor position (opt.)   */
 PROVIDE(_EFP_SETCURSOR  = 0x00000440);  /* Enable/disable cursor (opt.) */
 PROVIDE(_EFP_CHECKCHAR  = 0x00000444);  /* Check char ready from UART   */
-PROVIDE(_EFP_PROGLOADER = 0x00000448);  /* relocial program loader       */
-PROVIDE(_EFP_SD_INIT    = 0x0000044C);  /* SD Card reloc                 */
+PROVIDE(_EFP_PROGLOADER = 0x00000448);  /* relocial program loader      */
+PROVIDE(_EFP_SD_INIT    = 0x0000044C);  /* SD Card reloc                */
 PROVIDE(_EFP_SD_READ    = 0x00000450);  /* SD Card read                 */
 PROVIDE(_EFP_SD_WRITE   = 0x00000454);  /* SD Card write                */
 PROVIDE(_EFP_SD_REG     = 0x00000458);  /* SD Card register read        */
-PROVIDE(_EFP_SPI_INIT   = 0x0000045C);  /* SPI reloc                     */
+PROVIDE(_EFP_SPI_INIT   = 0x0000045C);  /* SPI reloc                    */
 PROVIDE(_EFP_SPI_CS_A   = 0x00000460);  /* SPI CS assert                */
 PROVIDE(_EFP_SPI_CS_D   = 0x00000464);  /* SPI CS deassert              */
 PROVIDE(_EFP_SPI_XFER_B = 0x00000468);  /* SPI transfer byte            */
